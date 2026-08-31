@@ -1,0 +1,44 @@
+# Environment / secrets
+.env
+*.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+build/
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large installers
+*.exe
+# Flutter SDK
+flutter/
