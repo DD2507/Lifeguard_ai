@@ -666,8 +666,13 @@ function App() {
           {/* WHY IS THE PATIENT AT RISK? */}
 
           <h2 className="page-section-title">
-            Why This Risk Was Assigned
+            Explainable AI — SHAP Feature Attributions
           </h2>
+          {selectedPatient.source && (
+            <div style={{ marginBottom: "15px", fontSize: "0.9rem", color: "#60a5fa", fontWeight: 600 }}>
+              🧠 Engine: {selectedPatient.source}
+            </div>
+          )}
 
 
           <section className="risk-reasons">
@@ -691,8 +696,13 @@ function App() {
                         {reason.factor}
                       </strong>
 
-                      <span>
-                        {reason.severity}
+                      <span style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        {reason.impactPct !== undefined && (
+                          <small style={{ fontWeight: "bold", opacity: 0.9 }}>
+                            {reason.impactPct > 0 ? `+${reason.impactPct}%` : `${reason.impactPct}%`} SHAP
+                          </small>
+                        )}
+                        <span>{reason.severity}</span>
                       </span>
 
                     </div>
@@ -732,7 +742,7 @@ function App() {
             <div>
 
               <p>
-                AI Explanation
+                AI Reasoning Summary
               </p>
 
               <p>

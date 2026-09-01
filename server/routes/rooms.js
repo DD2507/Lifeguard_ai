@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 
 const Room = require("../models/room");
 const Patient = require("../models/Patient");
@@ -8,6 +9,13 @@ const { calculateRisk } = require("../services/riskEngine");
 
 const router = express.Router();
 
+const fallbackRooms = [
+    { roomId: "102", name: "Room 102", temperature: 32, humidity: 75, airQuality: 220, presenceDetected: true, fanStatus: true, buzzerStatus: true, patientId: "P003" },
+    { roomId: "105", name: "Room 105", temperature: 24, humidity: 50, airQuality: 80, presenceDetected: true, fanStatus: false, buzzerStatus: false, patientId: "P012" },
+    { roomId: "103", name: "Room 103", temperature: 26, humidity: 55, airQuality: 110, presenceDetected: true, fanStatus: false, buzzerStatus: false, patientId: "P007" },
+    { roomId: "107", name: "Room 107", temperature: 23, humidity: 45, airQuality: 70, presenceDetected: true, fanStatus: false, buzzerStatus: false, patientId: "P015" }
+];
+
 
 // ======================================================
 // GET ALL ROOMS
@@ -15,9 +23,11 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
-        const rooms = await Room.find().sort({ roomId: 1 });
-
-        res.json(rooms);
+        if (mongoose.connection.readyState === 1) {
+            const rooms = await Room.find().sort({ roomId: 1 });
+            return res.json(rooms);
+        }
+        res.json(fallbackRooms);
     } catch (error) {
         console.error("Failed to fetch rooms:", error);
 
@@ -34,17 +44,19 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     try {
-        const room = await Room.findOne({
-            roomId: req.params.id
-        });
-
-        if (!room) {
+        if (mongoose.connection.readyState === 1) {
+            const room = await Room.findOne({
+                roomId: req.params.id
+            });
+            if (room) return res.json(room);
+        }
+        const fallbackRoom = fallbackRooms.find(r => r.roomId === req.params.id);
+        if (!fallbackRoom) {
             return res.status(404).json({
                 error: "Room not found"
             });
         }
-
-        res.json(room);
+        res.json(fallbackRoom);
     } catch (error) {
         console.error("Failed to fetch room:", error);
 

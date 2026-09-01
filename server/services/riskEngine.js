@@ -258,7 +258,48 @@ function calculateRisk(vitals, roomContext = {}) {
     };
 }
 
+// ==================================================
+// ML & SHAP AI SERVICE INTEGRATION
+// ==================================================
+
+async function calculateRiskWithAI(vitals, roomContext = {}) {
+    const payload = {
+        heartRate: vitals.heartRate || 75,
+        spo2: vitals.spo2 || 98,
+        temperature: vitals.temperature || 36.8,
+        roomTemperature: roomContext.temperature || 24,
+        humidity: roomContext.humidity || 50,
+        airQuality: roomContext.airQuality || 100
+    };
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/api/ai/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const aiResult = await response.json();
+            return {
+                ...aiResult,
+                source: "Random Forest + SHAP Engine"
+            };
+        }
+    } catch (err) {
+        console.log("AI Microservice offline. Falling back to heuristic engine.");
+    }
+
+    // Fallback to heuristic rule engine
+    const heuristicResult = calculateRisk(vitals, roomContext);
+    return {
+        ...heuristicResult,
+        source: "Heuristic Rule Engine"
+    };
+}
+
 
 module.exports = {
-    calculateRisk
+    calculateRisk,
+    calculateRiskWithAI
 };
