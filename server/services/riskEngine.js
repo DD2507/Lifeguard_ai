@@ -287,7 +287,7 @@ async function calculateRiskWithAI(vitals, roomContext = {}) {
             };
         }
     } catch (err) {
-        console.log("AI Microservice offline. Falling back to heuristic engine.");
+        // Silent fallback to heuristic rule engine when AI microservice is offline
     }
 
     // Fallback to heuristic rule engine

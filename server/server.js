@@ -3,9 +3,11 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+const { startMQTTBroker } = require("./services/mqttBroker");
+
 const app = express();
-const patientRoutes = require("./routes/patients");
-const roomRoutes = require("./routes/rooms");
+const { router: patientRoutes } = require("./routes/patients");
+const { router: roomRoutes } = require("./routes/rooms");
 const vitalRoutes = require("./routes/vitals");
 const alertRoutes = require("./routes/alerts");
 app.use(cors());
@@ -34,4 +36,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`LifeGuard AI server running on http://localhost:${PORT}`);
+    startMQTTBroker();
 });

@@ -1,0 +1,29 @@
+1️⃣ Terminal 1: Start the Python AI & SHAP Engine
+Open PowerShell and run:
+
+powershell
+
+
+cd d:\Lifeguard_ai\backend
+python -m uvicorn ai_service:app --port 8000
+(You will see: Uvicorn running on http://127.0.0.1:8000)
+
+2️⃣ Terminal 2: Start the Backend Server & MQTT Broker
+Open a second terminal window and run:
+
+powershell
+
+
+cd d:\Lifeguard_ai\server
+node server.js
+(You will see: LifeGuard AI server running on http://localhost:5000 and 📡 LifeGuard AI Embedded MQTT Broker listening on port 1883)
+
+3️⃣ Terminal 3: Start the Web Dashboard
+Open a third terminal window and run:
+
+powershell
+
+
+cd d:\Lifeguard_ai\lifeguard_web
+npm run dev
+(You will see: Local: http://localhost:5173/)

@@ -5,7 +5,7 @@ const Vital = require("../models/Vital");
 const Room = require("../models/room");
 const Alert = require("../models/Alert");
 
-const { calculateRisk } = require("../services/riskEngine");
+const { calculateRiskWithAI } = require("../services/riskEngine");
 
 const router = express.Router();
 
@@ -77,7 +77,7 @@ router.post("/:patientId", async (req, res) => {
         // CALCULATE RISK
         // ==================================================
 
-        const riskResult = calculateRisk(
+        const riskResult = await calculateRiskWithAI(
             {
                 heartRate,
                 spo2,

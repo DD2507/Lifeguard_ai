@@ -130,7 +130,7 @@ function App() {
       fetchPatients();
       fetchAlerts();
       fetchRooms();
-    }, 5000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, []);
@@ -141,18 +141,17 @@ function App() {
   // =====================================================
 
   useEffect(() => {
-    if (!selectedPatient) {
+    if (!selectedPatient?.patientId) {
       return;
     }
 
+    const currentPatientId = selectedPatient.patientId;
     const interval = setInterval(() => {
-      fetchPatientDetails(
-        selectedPatient.patientId
-      );
-    }, 5000);
+      fetchPatientDetails(currentPatientId);
+    }, 1500);
 
     return () => clearInterval(interval);
-  }, [selectedPatient]);
+  }, [selectedPatient?.patientId]);
 
 
   // =====================================================
