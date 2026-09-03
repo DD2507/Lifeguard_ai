@@ -10,6 +10,7 @@ function App() {
 
   const [activePage, setActivePage] = useState("dashboard");
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -178,6 +179,22 @@ function App() {
       patient.risk === "MODERATE"
   );
 
+
+  const handleLogin = (username, password) => {
+    if (username === "admin" && password === "admin123") {
+      setIsLoggedIn(true);
+      setError("");
+      return true;
+    }
+    return false;
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setSelectedPatient(null);
+    setActivePage("dashboard");
+    setError("");
+  };
 
   const goToPage = (page) => {
     setActivePage(page);
@@ -373,6 +390,10 @@ function App() {
   // PATIENT DETAILS PAGE
   // =====================================================
 
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   if (selectedPatient) {
     return (
       <div className="app">
@@ -385,6 +406,12 @@ function App() {
               Patient Care Intelligence
             </p>
           </div>
+
+                    <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+
+
 
           <div className="status">
             <span className="status-dot"></span>
@@ -830,6 +857,13 @@ function App() {
         </div>
 
 
+                <button className="logout-button" onClick={handleLogout}>
+          Logout
+        </button>
+
+
+
+
         <div className="status">
 
           <span className="status-dot"></span>
@@ -932,7 +966,11 @@ function App() {
                   <div>
 
                     <h2>
-                      Good evening, Doctor
+                      {new Date().getHours() < 12
+                        ? "Good morning, Doctor"
+                        : new Date().getHours() < 17
+                        ? "Good afternoon, Doctor"
+                        : "Good evening, Doctor"}
                     </h2>
 
                     <p>
@@ -1412,6 +1450,74 @@ function App() {
 
       </main>
 
+    </div>
+  );
+}
+
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  const submitLogin = (event) => {
+    event.preventDefault();
+
+    const success = onLogin(username.trim(), password);
+
+    if (!success) {
+      setLoginError("Invalid username or password");
+      return;
+    }
+
+    setLoginError("");
+  };
+
+  return (
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-brand">
+          <div className="login-heart">♥</div>
+          <h1>LifeGuard AI</h1>
+          <p>Patient Care Intelligence</p>
+        </div>
+
+        <form onSubmit={submitLogin} className="login-form">
+          <h2>Sign In</h2>
+          <p className="login-subtitle">
+            Sign in to access the patient monitoring dashboard.
+          </p>
+
+          <label htmlFor="login-username">Username</label>
+          <input
+            id="login-username"
+            type="text"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            placeholder="Enter username"
+            autoComplete="username"
+          />
+
+          <label htmlFor="login-password">Password</label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter password"
+            autoComplete="current-password"
+          />
+
+          {loginError && <div className="login-error">{loginError}</div>}
+
+          <button type="submit" className="login-button">
+            Login
+          </button>
+
+          <p className="login-demo">
+            Demo login: <strong>admin</strong> / <strong>admin123</strong>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
