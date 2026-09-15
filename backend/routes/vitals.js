@@ -7,6 +7,13 @@ const Alert = require("../models/Alert");
 
 const { calculateRisk } = require("../services/riskEngine");
 
+const {
+    BASELINE_SAMPLE_COUNT,
+    addSample,
+    calculateBaseline,
+    calculateDeviation
+} = require("../services/baselineService");
+
 const router = express.Router();
 
 // ======================================================
@@ -17,305 +24,153 @@ router.post("/:patientId", async (req, res) => {
     try {
         const { patientId } = req.params;
 
-        const {
-            heartRate,
-            spo2,
-            temperature
-        } = req.body;
-
-        // ==================================================
-        // VALIDATE INCOMING DATA
-        // ==================================================
+        const result =
+            await processPatientVital(
+                patientId,
+                req.body
+            );
 
         if (
-            heartRate === undefined ||
-            spo2 === undefined ||
-            temperature === undefined
+            result.baselineStatus ===
+            "COLLECTING"
         ) {
-            return res.status(400).json({
-                error:
-                    "heartRate, spo2 and temperature are required"
-            });
-        }
+            return res.json({
+                message:
+                    "Baseline collection in progress",
 
-        // ==================================================
-        // FIND PATIENT
-        // ==================================================
+                baseline:
+                    result.baseline,
 
-        const patient = await Patient.findOne({
-            patientId
-        });
-
-        if (!patient) {
-            return res.status(404).json({
-                error: "Patient not found"
-            });
-        }
-
-        // ==================================================
-        // FIND PATIENT'S ROOM
-        // ==================================================
-
-        const room = await Room.findOne({
-            roomId: patient.room
-        });
-
-        const roomContext = room
-            ? {
-                temperature: room.temperature,
-                humidity: room.humidity,
-                airQuality: room.airQuality,
-                presenceDetected:
-                    room.presenceDetected
-            }
-            : {};
-
-        // ==================================================
-        // CALCULATE RISK
-        // ==================================================
-
-        const riskResult = calculateRisk(
-            {
-                heartRate,
-                spo2,
-                temperature
-            },
-            roomContext
-        );
-
-        // ==================================================
-        // UPDATE CURRENT PATIENT DATA
-        // ==================================================
-
-        patient.heartRate = heartRate;
-        patient.spo2 = spo2;
-        patient.temperature = temperature;
-
-        patient.risk = riskResult.risk;
-        patient.riskScore =
-            riskResult.riskScore;
-
-        patient.riskReasons =
-            riskResult.riskReasons;
-
-        patient.riskSummary =
-            riskResult.riskSummary;
-
-        patient.recommendedAction =
-            riskResult.recommendedAction;
-
-        patient.roomContext =
-            roomContext;
-
-        await patient.save();
-
-        // ==================================================
-        // SAVE VITAL HISTORY
-        // ==================================================
-
-        const vital = await Vital.create({
-            patientId:
-                patient.patientId,
-
-            room:
-                patient.room,
-
-            heartRate,
-
-            spo2,
-
-            temperature,
-
-            risk:
-                riskResult.risk,
-
-            riskScore:
-                riskResult.riskScore,
-
-            riskReasons:
-                riskResult.riskReasons,
-
-            riskSummary:
-                riskResult.riskSummary,
-
-            recommendedAction:
-                riskResult.recommendedAction
-        });
-
-        // ==================================================
-        // ALERT MANAGEMENT
-        // ==================================================
-
-        if (
-            riskResult.risk === "HIGH" ||
-            riskResult.risk === "MODERATE"
-        ) {
-            const existingAlert =
-                await Alert.findOne({
+                patient: {
                     patientId:
-                        patient.patientId,
+                        result.patient.patientId,
 
-                    status: "ACTIVE"
-                });
-
-            // ==================================================
-            // UPDATE EXISTING ALERT
-            // ==================================================
-
-            if (existingAlert) {
-
-                existingAlert.risk =
-                    riskResult.risk;
-
-                existingAlert.riskScore =
-                    riskResult.riskScore;
-
-                existingAlert.reasons =
-                    riskResult.riskReasons;
-
-                existingAlert.summary =
-                    riskResult.riskSummary;
-
-                existingAlert.recommendedAction =
-                    riskResult.recommendedAction;
-
-                existingAlert.room =
-                    patient.room;
-
-                await existingAlert.save();
-
-            }
-
-            // ==================================================
-            // CREATE NEW ALERT
-            // ==================================================
-
-            else {
-
-                await Alert.create({
-
-                    patientId:
-                        patient.patientId,
-
-                    patientName:
-                        patient.name,
+                    name:
+                        result.patient.name,
 
                     room:
-                        patient.room,
+                        result.patient.room,
 
-                    risk:
-                        riskResult.risk,
+                    heartRate:
+                        result.patient.heartRate,
 
-                    riskScore:
-                        riskResult.riskScore,
+                    spo2:
+                        result.patient.spo2,
 
-                    reasons:
-                        riskResult.riskReasons,
-
-                    summary:
-                        riskResult.riskSummary,
-
-                    recommendedAction:
-                        riskResult.recommendedAction,
-
-                    status:
-                        "ACTIVE"
-                });
-            }
-        }
-
-        // ==================================================
-        // LOW RISK → RESOLVE OLD ALERT
-        // ==================================================
-
-        else {
-
-            await Alert.updateMany(
-                {
-                    patientId:
-                        patient.patientId,
-
-                    status:
-                        "ACTIVE"
-                },
-                {
-                    status:
-                        "RESOLVED",
-
-                    resolvedAt:
-                        new Date()
+                    temperature:
+                        result.patient.temperature
                 }
-            );
+            });
         }
 
-        // ==================================================
-        // RESPONSE
-        // ==================================================
+        if (
+            result.baselineStatus ===
+            "ESTABLISHED" &&
+            !result.risk
+        ) {
+            return res.json({
+                message:
+                    "Baseline established",
+
+                baseline:
+                    result.baseline,
+
+                baselineDeviation:
+                    result.baselineDeviation,
+
+                patient: {
+                    patientId:
+                        result.patient.patientId,
+
+                    name:
+                        result.patient.name,
+
+                    room:
+                        result.patient.room,
+
+                    heartRate:
+                        result.patient.heartRate,
+
+                    spo2:
+                        result.patient.spo2,
+
+                    temperature:
+                        result.patient.temperature
+                }
+            });
+        }
 
         res.json({
-
             message:
-                "Patient vitals updated successfully",
+                "Patient vitals processed successfully",
 
             patient: {
-
                 patientId:
-                    patient.patientId,
+                    result.patient.patientId,
 
                 name:
-                    patient.name,
+                    result.patient.name,
 
                 room:
-                    patient.room,
+                    result.patient.room,
 
                 heartRate:
-                    patient.heartRate,
+                    result.patient.heartRate,
 
                 spo2:
-                    patient.spo2,
+                    result.patient.spo2,
 
                 temperature:
-                    patient.temperature,
+                    result.patient.temperature,
+
+                baseline:
+                    result.patient.baseline,
+
+                baselineDeviation:
+                    result.baselineDeviation,
 
                 risk:
-                    patient.risk,
+                    result.risk.risk,
 
                 riskScore:
-                    patient.riskScore,
+                    result.risk.riskScore,
 
                 riskReasons:
-                    patient.riskReasons,
+                    result.risk.riskReasons,
 
                 riskSummary:
-                    patient.riskSummary,
+                    result.risk.riskSummary,
 
                 recommendedAction:
-                    patient.recommendedAction,
+                    result.risk.recommendedAction,
 
                 roomContext:
-                    patient.roomContext
+                    result.patient.roomContext
             },
 
             history: {
-
                 id:
-                    vital._id,
+                    result.vital._id,
 
                 timestamp:
-                    vital.createdAt
+                    result.vital.createdAt
             }
         });
 
     } catch (error) {
-
         console.error(
-            "Failed to update patient vitals:",
+            "Failed to process patient vitals:",
             error
         );
 
-        res.status(500).json({
-            error:
-                "Failed to update patient vitals"
+        const status =
+            error.message ===
+            "Patient not found"
+                ? 404
+                : 400;
+
+        res.status(status).json({
+            error: error.message
         });
     }
 });

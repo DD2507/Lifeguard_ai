@@ -1,5 +1,15 @@
 const mongoose = require("mongoose");
 
+
+const { calculateRisk } = require("../services/riskEngine");
+
+const {
+    BASELINE_SAMPLE_COUNT,
+    addSample,
+    calculateBaseline,
+    calculateDeviation
+} = require("../services/baselineService");
+
 const vitalSchema = new mongoose.Schema(
     {
         patientId: {
@@ -26,6 +36,24 @@ const vitalSchema = new mongoose.Schema(
         temperature: {
             type: Number,
             required: true
+        },
+
+        // Deviation from patient's personal baseline
+        baselineDeviation: {
+            heartRate: {
+                type: Number,
+                default: null
+            },
+
+            spo2: {
+                type: Number,
+                default: null
+            },
+
+            temperature: {
+                type: Number,
+                default: null
+            }
         },
 
         // Risk assessment at the time of this reading

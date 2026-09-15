@@ -36,6 +36,51 @@ const patientSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        // Personal baseline
+baseline: {
+    heartRate: {
+        type: Number,
+        default: null
+    },
+
+    spo2: {
+        type: Number,
+        default: null
+    },
+
+    temperature: {
+        type: Number,
+        default: null
+    },
+
+    sampleCount: {
+        type: Number,
+        default: 0
+    },
+
+    established: {
+        type: Boolean,
+        default: false
+    }
+},
+
+// Deviation from personal baseline
+baselineDeviation: {
+    heartRate: {
+        type: Number,
+        default: null
+    },
+
+    spo2: {
+        type: Number,
+        default: null
+    },
+
+    temperature: {
+        type: Number,
+        default: null
+    }
+},
 
         // Current risk assessment
         risk: {

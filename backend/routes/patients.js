@@ -6,6 +6,58 @@ const { calculateRisk } = require("../services/riskEngine");
 
 const router = express.Router();
 
+// CREATE PATIENT
+router.post("/", async (req, res) => {
+    try {
+        const {
+            patientId,
+            name,
+            room
+        } = req.body;
+
+        if (
+            !patientId ||
+            !name ||
+            !room
+        ) {
+            return res.status(400).json({
+                error:
+                    "patientId, name and room are required"
+            });
+        }
+
+        const existingPatient =
+            await Patient.findOne({
+                patientId
+            });
+
+        if (existingPatient) {
+            return res.status(409).json({
+                error: "Patient already exists"
+            });
+        }
+
+        const patient =
+            await Patient.create({
+                patientId,
+                name,
+                room
+            });
+
+        res.status(201).json(patient);
+
+    } catch (error) {
+        console.error(
+            "Failed to create patient:",
+            error
+        );
+
+        res.status(500).json({
+            error: "Failed to create patient"
+        });
+    }
+});
+
 // GET ALL PATIENTS
 router.get("/", async (req, res) => {
     try {
@@ -17,13 +69,14 @@ router.get("/", async (req, res) => {
             const roomContext = patientData.roomContext || {};
 
             const riskResult = calculateRisk(
-                {
+            {
                     heartRate: patientData.heartRate,
                     spo2: patientData.spo2,
                     temperature: patientData.temperature
-                },
-                roomContext
-            );
+            },
+                    roomContext,
+                     patientData.baselineDeviation || {}
+);
 
             return {
                 ...patientData,
@@ -60,13 +113,14 @@ router.get("/:id", async (req, res) => {
         const roomContext = patientData.roomContext || {};
 
         const riskResult = calculateRisk(
-            {
-                heartRate: patientData.heartRate,
-                spo2: patientData.spo2,
-                temperature: patientData.temperature
-            },
-            roomContext
-        );
+    {
+        heartRate: patientData.heartRate,
+        spo2: patientData.spo2,
+        temperature: patientData.temperature
+    },
+    roomContext,
+    patientData.baselineDeviation || {}
+);
 
         res.json({
             ...patientData,

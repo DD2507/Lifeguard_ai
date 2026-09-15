@@ -1,5 +1,8 @@
-function calculateRisk(vitals, roomContext = {}) {
-
+function calculateRisk(
+    vitals,
+    roomContext = {},
+    baselineDeviation = {}
+) {
     const {
         heartRate,
         spo2,
@@ -12,6 +15,12 @@ function calculateRisk(vitals, roomContext = {}) {
         airQuality = 0
     } = roomContext;
 
+    const {
+        heartRate: hrDeviation = null,
+        spo2: spo2Deviation = null,
+        temperature: tempDeviation = null
+    } = baselineDeviation;
+
     const reasons = [];
 
     let score = 0;
@@ -21,7 +30,6 @@ function calculateRisk(vitals, roomContext = {}) {
     // ==================================================
 
     if (heartRate < 50 || heartRate > 120) {
-
         score += 0.30;
 
         reasons.push({
@@ -33,7 +41,6 @@ function calculateRisk(vitals, roomContext = {}) {
         });
 
     } else if (heartRate < 60 || heartRate > 100) {
-
         score += 0.15;
 
         reasons.push({
@@ -50,7 +57,6 @@ function calculateRisk(vitals, roomContext = {}) {
     // ==================================================
 
     if (spo2 < 90) {
-
         score += 0.45;
 
         reasons.push({
@@ -62,7 +68,6 @@ function calculateRisk(vitals, roomContext = {}) {
         });
 
     } else if (spo2 < 94) {
-
         score += 0.30;
 
         reasons.push({
@@ -79,7 +84,6 @@ function calculateRisk(vitals, roomContext = {}) {
     // ==================================================
 
     if (temperature >= 39) {
-
         score += 0.30;
 
         reasons.push({
@@ -91,7 +95,6 @@ function calculateRisk(vitals, roomContext = {}) {
         });
 
     } else if (temperature >= 38) {
-
         score += 0.20;
 
         reasons.push({
@@ -104,11 +107,92 @@ function calculateRisk(vitals, roomContext = {}) {
     }
 
     // ==================================================
+    // PERSONAL BASELINE DEVIATION
+    // ==================================================
+
+    if (hrDeviation !== null) {
+
+        if (Math.abs(hrDeviation) >= 25) {
+            score += 0.15;
+
+            reasons.push({
+                factor: "Heart Rate Deviation",
+                value: hrDeviation,
+                severity: "HIGH",
+                explanation:
+                    `Heart rate differs from the patient's personal baseline by ${hrDeviation} BPM.`
+            });
+
+        } else if (Math.abs(hrDeviation) >= 15) {
+            score += 0.08;
+
+            reasons.push({
+                factor: "Heart Rate Deviation",
+                value: hrDeviation,
+                severity: "MODERATE",
+                explanation:
+                    `Heart rate differs from the patient's personal baseline by ${hrDeviation} BPM.`
+            });
+        }
+    }
+
+    if (spo2Deviation !== null) {
+
+        if (spo2Deviation <= -4) {
+            score += 0.20;
+
+            reasons.push({
+                factor: "SpO₂ Baseline Deviation",
+                value: spo2Deviation,
+                severity: "HIGH",
+                explanation:
+                    `SpO₂ has fallen ${Math.abs(spo2Deviation)} percentage points below the patient's personal baseline.`
+            });
+
+        } else if (spo2Deviation <= -2) {
+            score += 0.10;
+
+            reasons.push({
+                factor: "SpO₂ Baseline Deviation",
+                value: spo2Deviation,
+                severity: "MODERATE",
+                explanation:
+                    `SpO₂ has fallen ${Math.abs(spo2Deviation)} percentage points below the patient's personal baseline.`
+            });
+        }
+    }
+
+    if (tempDeviation !== null) {
+
+        if (tempDeviation >= 1.5) {
+            score += 0.15;
+
+            reasons.push({
+                factor: "Temperature Baseline Deviation",
+                value: tempDeviation,
+                severity: "HIGH",
+                explanation:
+                    `Body temperature is ${tempDeviation}°C above the patient's personal baseline.`
+            });
+
+        } else if (tempDeviation >= 0.8) {
+            score += 0.08;
+
+            reasons.push({
+                factor: "Temperature Baseline Deviation",
+                value: tempDeviation,
+                severity: "MODERATE",
+                explanation:
+                    `Body temperature is ${tempDeviation}°C above the patient's personal baseline.`
+            });
+        }
+    }
+
+    // ==================================================
     // ROOM TEMPERATURE
     // ==================================================
 
     if (roomTemperature > 30) {
-
         score += 0.10;
 
         reasons.push({
@@ -125,7 +209,6 @@ function calculateRisk(vitals, roomContext = {}) {
     // ==================================================
 
     if (humidity > 70) {
-
         score += 0.05;
 
         reasons.push({
@@ -138,11 +221,10 @@ function calculateRisk(vitals, roomContext = {}) {
     }
 
     // ==================================================
-    // AIR QUALITY - MQ135
+    // AIR QUALITY
     // ==================================================
 
     if (airQuality > 200) {
-
         score += 0.10;
 
         reasons.push({
@@ -154,10 +236,6 @@ function calculateRisk(vitals, roomContext = {}) {
         });
     }
 
-    // ==================================================
-    // LIMIT SCORE
-    // ==================================================
-
     score = Math.min(score, 1);
 
     // ==================================================
@@ -167,11 +245,8 @@ function calculateRisk(vitals, roomContext = {}) {
     let risk = "LOW";
 
     if (score >= 0.60) {
-
         risk = "HIGH";
-
     } else if (score >= 0.30) {
-
         risk = "MODERATE";
     }
 
@@ -182,12 +257,9 @@ function calculateRisk(vitals, roomContext = {}) {
     let riskSummary;
 
     if (reasons.length === 0) {
-
         riskSummary =
-            "Current patient vitals and available room conditions are within the configured monitoring ranges.";
-
+            "Current patient vitals, personal baseline comparison and available room conditions are within the configured monitoring ranges.";
     } else {
-
         const factors = reasons
             .map(reason => reason.factor)
             .join(", ");
@@ -197,44 +269,30 @@ function calculateRisk(vitals, roomContext = {}) {
     }
 
     // ==================================================
-    // RECOMMENDED ROOM ACTION
+    // RECOMMENDED ROOM RESPONSE
     // ==================================================
 
     let recommendedAction = {
-
         fan: false,
-
         buzzer: false,
-
-        reason:
-            "No immediate room intervention is required."
+        reason: "No immediate room intervention is required."
     };
-
-    // Environmental intervention
 
     if (
         roomTemperature > 30 ||
         humidity > 70 ||
         airQuality > 200
     ) {
-
         recommendedAction = {
-
             fan: true,
-
             buzzer: risk === "HIGH",
-
             reason:
                 "Environmental conditions require attention. Fan activation is recommended to improve room conditions."
         };
     }
 
-    // High patient risk
-
     if (risk === "HIGH") {
-
         recommendedAction = {
-
             fan:
                 roomTemperature > 30 ||
                 humidity > 70 ||
@@ -247,12 +305,7 @@ function calculateRisk(vitals, roomContext = {}) {
         };
     }
 
-    // ==================================================
-    // RETURN RESULT
-    // ==================================================
-
     return {
-
         risk,
 
         riskScore:

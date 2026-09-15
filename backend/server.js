@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
-
+const { startMQTT } = require("./services/mqttBroker");
 const app = express();
 
 const patientRoutes = require("./routes/patients");
@@ -42,4 +42,5 @@ app.listen(PORT, () => {
     console.log(
         `LifeGuard AI server running on http://localhost:${PORT}`
     );
+     startMQTT();
 });
