@@ -1,11 +1,11 @@
 const express = require("express");
 
-const Patient = require("../models/Patient");
+
 const Vital = require("../models/Vital");
 const Room = require("../models/room");
 const Alert = require("../models/Alert");
 
-const { calculateRisk } = require("../services/riskEngine");
+const { predictWithAI } = require("../services/aiClient");
 
 const {
     BASELINE_SAMPLE_COUNT,
@@ -13,6 +13,10 @@ const {
     calculateBaseline,
     calculateDeviation
 } = require("../services/baselineService");
+
+const {
+    processPatientVital
+} = require("../services/patientVitalService");
 
 const router = express.Router();
 

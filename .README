@@ -1,29 +1,212 @@
-1️⃣ Terminal 1: Start the Python AI & SHAP Engine
-Open PowerShell and run:
+# LifeGuard AI — IoT Integration Handover
 
-powershell
+## Current Status
 
+The software pipeline is completed and working end-to-end:
 
-cd d:\Lifeguard_ai\backend
-python -m uvicorn ai_service:app --port 8000
-(You will see: Uvicorn running on http://127.0.0.1:8000)
+Patient Data
+↓
+MQTT
+↓
+Node.js Backend
+↓
+Personalized Baseline
+↓
+Python AI Service
+↓
+Random Forest + SHAP
+↓
+MongoDB
+↓
+Risk + Alerts
 
-2️⃣ Terminal 2: Start the Backend Server & MQTT Broker
-Open a second terminal window and run:
+### Completed
 
-powershell
+- MQTT communication using Mosquitto
+- Node.js + Express backend
+- MongoDB Atlas integration
+- Personalized patient baseline using 10 samples
+- Baseline deviation calculation
+- Python FastAPI AI service
+- Random Forest risk prediction
+- SHAP-based explanations
+- HIGH / MODERATE / LOW risk output
+- Alert creation and updating
+- Patient API returning AI results
 
+Current demo data is simulated. The next task is IoT integration.
 
-cd d:\Lifeguard_ai\server
+---
+
+# Running the Project
+
+The project requires 4 terminals.
+
+Project directory:
+
+cd D:\Lifeguard_ai\backend
+
+---
+
+## Terminal 1 — MQTT Broker
+
+Run:
+
+& "C:\Program Files\mosquitto\mosquitto.exe" -v
+
+Purpose:
+Runs the MQTT broker and receives sensor data from ESP32 devices.
+
+Port:
+1883
+
+Keep this terminal running.
+
+---
+
+## Terminal 2 — AI Service
+
+Run:
+
+cd D:\Lifeguard_ai\backend
+.\venv\Scripts\python.exe ai_service.py
+
+Purpose:
+Runs the Random Forest AI model and SHAP explainability service.
+
+Port:
+8000
+
+Expected output:
+
+Successfully loaded Random Forest Model and SHAP Explainer.
+
+Keep this terminal running.
+
+---
+
+## Terminal 3 — Node.js Backend
+
+Run:
+
+cd D:\Lifeguard_ai\backend
 node server.js
-(You will see: LifeGuard AI server running on http://localhost:5000 and 📡 LifeGuard AI Embedded MQTT Broker listening on port 1883)
 
-3️⃣ Terminal 3: Start the Web Dashboard
-Open a third terminal window and run:
+Purpose:
+Handles MQTT data, patient baseline calculation, AI communication, MongoDB storage and alerts.
 
-powershell
+Port:
+5000
 
+Expected output should include:
 
-cd d:\Lifeguard_ai\lifeguard_web
-npm run dev
-(You will see: Local: http://localhost:5173/)
+MongoDB connected
+Server running on port 5000
+MQTT connected
+
+Keep this terminal running.
+
+---
+
+## Terminal 4 — Testing / IoT
+
+Run:
+
+cd D:\Lifeguard_ai\backend
+
+This terminal is used for testing and later for ESP32 integration.
+
+### Reset Patient Baseline
+
+Current patient:
+
+Patient ID: P001
+Room: R101
+
+Run:
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/patients/P001/baseline/reset" -Method POST
+
+### Run Baseline Demo
+
+node demo/baseline-demo.js
+
+This sends 10 normal readings and establishes the patient's personalized baseline.
+
+### Run Abnormal Demo
+
+node demo/abnormal-demo.js
+
+### Check Patient Result
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/patients/P001"
+
+---
+
+# IoT Team — Continue From Here
+
+The current software uses simulated MQTT data.
+
+The next task is to replace:
+
+demo/baseline-demo.js
+demo/abnormal-demo.js
+
+with the actual ESP32 patient monitoring node.
+
+## Patient MQTT Topic
+
+Publish patient vitals to:
+
+lifeguard/patient/P001/vitals
+
+## Required JSON Format
+
+{
+    "heartRate": 78,
+    "spo2": 97,
+    "temperature": 36.8
+}
+
+Required field names:
+
+heartRate
+spo2
+temperature
+
+Do not change these field names or the MQTT topic structure without coordinating with the software team.
+
+---
+
+# Target IoT Flow
+
+MAX30102
+├── Heart Rate
+└── SpO₂
+
+DS18B20
+└── Temperature
+        ↓
+      ESP32
+        ↓ MQTT
+   Mosquitto Broker
+        ↓
+  Node.js Backend
+        ↓
+Baseline + Deviation
+        ↓
+   Random Forest
+        ↓
+   Risk + SHAP
+
+---
+
+# Immediate Goal
+
+ESP32 + MAX30102 + DS18B20
+            ↓
+          MQTT
+            ↓
+Existing LifeGuard AI Pipeline
+
+After patient-node integration, proceed with the Smart Room ESP32 and room sensors.

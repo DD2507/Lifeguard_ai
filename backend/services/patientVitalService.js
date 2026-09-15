@@ -3,7 +3,7 @@ const Vital = require("../models/Vital");
 const Room = require("../models/room");
 const Alert = require("../models/Alert");
 
-const { calculateRisk } = require("./riskEngine");
+const { predictWithAI } = require("./aiClient");
 
 const {
     BASELINE_SAMPLE_COUNT,
@@ -127,16 +127,15 @@ async function processPatientVital(patientId, vitals) {
             patient.baseline
         );
 
-    const riskResult = calculateRisk(
-        {
-            heartRate,
-            spo2,
-            temperature
-        },
-        roomContext,
+    const riskResult = await predictWithAI(
+    {
+        heartRate,
+        spo2,
+        temperature
+    },
+    roomContext,
     baselineDeviation
-    );
-
+);
     patient.heartRate = heartRate;
     patient.spo2 = spo2;
     patient.temperature = temperature;

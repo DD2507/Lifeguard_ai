@@ -2,7 +2,9 @@ const express = require("express");
 
 const Patient = require("../models/Patient");
 
-const { calculateRisk } = require("../services/riskEngine");
+const {
+    resetBaseline
+} = require("../services/baselineService");
 
 const router = express.Router();
 
@@ -58,36 +60,106 @@ router.post("/", async (req, res) => {
     }
 });
 
+// RESET PATIENT BASELINE
+router.post("/:id/baseline/reset", async (req, res) => {
+    try {
+        const patient = await Patient.findOne({
+            patientId: req.params.id
+        });
+
+        if (!patient) {
+            return res.status(404).json({
+                error: "Patient not found"
+            });
+        }
+
+        resetBaseline(patient.patientId);
+
+        patient.baseline = {
+            heartRate: null,
+            spo2: null,
+            temperature: null,
+            sampleCount: 0,
+            established: false
+        };
+
+        patient.heartRate = null;
+        patient.spo2 = null;
+        patient.temperature = null;
+
+        patient.risk = "LOW";
+        patient.riskScore = 0;
+        patient.riskReasons = [];
+        patient.riskSummary = "";
+
+        patient.recommendedAction = {
+            fan: false,
+            buzzer: false,
+            reason: ""
+        };
+
+        patient.baselineDeviation = {
+            heartRate: null,
+            spo2: null,
+            temperature: null
+        };
+
+        await patient.save();
+
+        res.json({
+            message: "Patient baseline reset successfully",
+            patientId: patient.patientId,
+            baseline: patient.baseline,
+            baselineDeviation: patient.baselineDeviation
+        });
+
+    } catch (error) {
+        console.error(
+            "Failed to reset patient baseline:",
+            error
+        );
+
+        res.status(500).json({
+            error: "Failed to reset patient baseline"
+        });
+    }
+});
+
 // GET ALL PATIENTS
 router.get("/", async (req, res) => {
     try {
         const patients = await Patient.find();
 
-        const patientsWithRisk = patients.map((patient) => {
+        const patientsWithStatus = patients.map((patient) => {
             const patientData = patient.toObject();
 
-            const roomContext = patientData.roomContext || {};
+            if (!patientData.baseline?.established) {
+                return {
+                    ...patientData,
+                    risk: "LOW",
+                    riskScore: 0,
+                    riskReasons: [],
+                    riskSummary:
+                        "Baseline is currently being established.",
+                    recommendedAction: {
+                        fan: false,
+                        buzzer: false,
+                        reason:
+                            "Baseline collection in progress."
+                    }
+                };
+            }
 
-            const riskResult = calculateRisk(
-            {
-                    heartRate: patientData.heartRate,
-                    spo2: patientData.spo2,
-                    temperature: patientData.temperature
-            },
-                    roomContext,
-                     patientData.baselineDeviation || {}
-);
-
-            return {
-                ...patientData,
-                ...riskResult
-            };
+            return patientData;
         });
 
-        res.json(patientsWithRisk);
+        res.json(patientsWithStatus);
 
     } catch (error) {
-        console.error("Failed to fetch patients:", error);
+        console.error(
+            "Failed to fetch patients:",
+            error
+        );
 
         res.status(500).json({
             error: "Failed to fetch patients"
@@ -110,25 +182,30 @@ router.get("/:id", async (req, res) => {
 
         const patientData = patient.toObject();
 
-        const roomContext = patientData.roomContext || {};
+        if (!patientData.baseline?.established) {
+            return res.json({
+                ...patientData,
+                risk: "LOW",
+                riskScore: 0,
+                riskReasons: [],
+                riskSummary:
+                    "Baseline is currently being established.",
+                recommendedAction: {
+                    fan: false,
+                    buzzer: false,
+                    reason:
+                        "Baseline collection in progress."
+                }
+            });
+        }
 
-        const riskResult = calculateRisk(
-    {
-        heartRate: patientData.heartRate,
-        spo2: patientData.spo2,
-        temperature: patientData.temperature
-    },
-    roomContext,
-    patientData.baselineDeviation || {}
-);
-
-        res.json({
-            ...patientData,
-            ...riskResult
-        });
+        res.json(patientData);
 
     } catch (error) {
-        console.error("Failed to fetch patient:", error);
+        console.error(
+            "Failed to fetch patient:",
+            error
+        );
 
         res.status(500).json({
             error: "Failed to fetch patient"
