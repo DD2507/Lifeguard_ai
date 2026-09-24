@@ -9,6 +9,8 @@ const patientRoutes = require("./routes/patients");
 const roomRoutes = require("./routes/rooms");
 const vitalRoutes = require("./routes/vitals");
 const alertRoutes = require("./routes/alerts");
+const prescriptionRoutes = require("./routes/prescriptions");
+const bedRoutes = require("./routes/beds");
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +19,8 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/vitals", vitalRoutes);
 app.use("/api/alerts", alertRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/beds", bedRoutes);
 
 mongoose
     .connect(process.env.MONGODB_URI)

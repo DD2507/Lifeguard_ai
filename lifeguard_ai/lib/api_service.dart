@@ -41,6 +41,43 @@ class ApiService {
   }
 
   // ======================================================
+  // DIGITAL TWIN + SIMULATION
+  // ======================================================
+
+  static Future<Map<String, dynamic>> getDigitalTwin(
+    String patientId,
+  ) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/patients/$patientId/digital-twin"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load patient digital twin");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> simulateWhatIf(
+    String patientId,
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/patients/$patientId/what-if"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception("Simulation failed: ${response.body}");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ======================================================
   // GET ACTIVE ALERTS
   // ======================================================
 
@@ -70,6 +107,61 @@ class ApiService {
     }
 
     return jsonDecode(response.body);
+  }
+
+  // ======================================================
+  // GET BEDS
+  // ======================================================
+
+  static Future<List<dynamic>> getBeds() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/beds"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load beds");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  static Future<List<dynamic>> getAvailableBeds() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/beds/available"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load available beds");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> getPatientBed(String patientId) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/beds"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load beds");
+    }
+
+    final List<dynamic> beds = jsonDecode(response.body);
+    final bed = beds.firstWhere(
+      (item) {
+        if (item is! Map<String, dynamic>) {
+          return false;
+        }
+        return item["patientId"]?.toString() == patientId;
+      },
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (bed is! Map<String, dynamic> || bed.isEmpty) {
+      throw Exception("No bed assigned");
+    }
+
+    return bed;
   }
 
   // ======================================================
@@ -115,6 +207,87 @@ class ApiService {
       throw Exception(
         "Failed to control room: ${response.body}",
       );
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ======================================================
+  // GET PATIENT PRESCRIPTIONS
+  // ======================================================
+
+  static Future<List<dynamic>> getPrescriptions(
+    String patientId,
+  ) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/prescriptions/patient/$patientId"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load prescriptions: ${response.body}");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ======================================================
+  // CREATE PRESCRIPTION
+  // ======================================================
+
+  static Future<Map<String, dynamic>> createPrescription(
+    Map<String, dynamic> data,
+  ) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/prescriptions"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception("Failed to create prescription: ${response.body}");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ======================================================
+  // UPDATE PRESCRIPTION STATUS
+  // ======================================================
+
+  static Future<Map<String, dynamic>> updatePrescriptionStatus(
+    String id,
+    String status,
+  ) async {
+    final response = await http.patch(
+      Uri.parse("$baseUrl/prescriptions/$id/status"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"status": status}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update status: ${response.body}");
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ======================================================
+  // DELETE PRESCRIPTION
+  // ======================================================
+
+  static Future<Map<String, dynamic>> deletePrescription(
+    String id,
+  ) async {
+    final response = await http.delete(
+      Uri.parse("$baseUrl/prescriptions/$id"),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to delete prescription: ${response.body}");
     }
 
     return jsonDecode(response.body);

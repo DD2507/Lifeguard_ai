@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 
 class PatientsScreen extends StatelessWidget {
   final List<dynamic> patients;
@@ -187,8 +188,18 @@ class PatientsScreen extends StatelessWidget {
     final dynamic temperature =
         patient["temperature"] ?? "--";
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PatientDetailsScreen(patientId: patientId),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
 
       padding: const EdgeInsets.all(17),
 
@@ -322,8 +333,9 @@ class PatientsScreen extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ======================================================
   // VITAL
