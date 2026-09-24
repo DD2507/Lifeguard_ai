@@ -1,212 +1,116 @@
-# LifeGuard AI — IoT Integration Handover
+Yes, but **I would change Terminal 1 and Terminal 3 from the commands you pasted** based on the setup we just verified.
 
-## Current Status
+For your **current LifeGuard AI project**, use this startup sequence:
 
-The software pipeline is completed and working end-to-end:
+### Terminal 1 — Mosquitto MQTT
 
-Patient Data
-↓
-MQTT
-↓
-Node.js Backend
-↓
-Personalized Baseline
-↓
-Python AI Service
-↓
-Random Forest + SHAP
-↓
-MongoDB
-↓
-Risk + Alerts
+**Don't run `mosquitto -v` again.** Your Mosquitto broker is already running on port `1883` as a background service. We already verified this.
 
-### Completed
-
-- MQTT communication using Mosquitto
-- Node.js + Express backend
-- MongoDB Atlas integration
-- Personalized patient baseline using 10 samples
-- Baseline deviation calculation
-- Python FastAPI AI service
-- Random Forest risk prediction
-- SHAP-based explanations
-- HIGH / MODERATE / LOW risk output
-- Alert creation and updating
-- Patient API returning AI results
-
-Current demo data is simulated. The next task is IoT integration.
+So **leave Terminal 1 unused** or use it later for MQTT testing.
 
 ---
 
-# Running the Project
+### Terminal 1 — Python AI Service
 
-The project requires 4 terminals.
-
-Project directory:
-
-cd D:\Lifeguard_ai\backend
-
----
-
-## Terminal 1 — MQTT Broker
-
-Run:
-
-& "C:\Program Files\mosquitto\mosquitto.exe" -v
-
-Purpose:
-Runs the MQTT broker and receives sensor data from ESP32 devices.
-
-Port:
-1883
+```powershell
+cd "C:\Users\Dhrupad\Desktop\Major project mobileapp\backend"
+.\venv\Scripts\Activate.ps1
+python ai_service.py
+```
 
 Keep this terminal running.
 
 ---
 
-## Terminal 2 — AI Service
+### Terminal 2 — Node.js Backend
 
-Run:
+Use **`backend`**, not the old `server` folder:
 
-cd D:\Lifeguard_ai\backend
-.\venv\Scripts\python.exe ai_service.py
-
-Purpose:
-Runs the Random Forest AI model and SHAP explainability service.
-
-Port:
-8000
-
-Expected output:
-
-Successfully loaded Random Forest Model and SHAP Explainer.
-
-Keep this terminal running.
-
----
-
-## Terminal 3 — Node.js Backend
-
-Run:
-
-cd D:\Lifeguard_ai\backend
+```powershell
+cd "C:\Users\Dhrupad\Desktop\Major project mobileapp\backend"
 node server.js
+```
 
-Purpose:
-Handles MQTT data, patient baseline calculation, AI communication, MongoDB storage and alerts.
+You should see something similar to:
 
-Port:
-5000
-
-Expected output should include:
-
-MongoDB connected
-Server running on port 5000
+```text
+LifeGuard AI server running on http://localhost:5000
 MQTT connected
-
-Keep this terminal running.
-
----
-
-## Terminal 4 — Testing / IoT
-
-Run:
-
-cd D:\Lifeguard_ai\backend
-
-This terminal is used for testing and later for ESP32 integration.
-
-### Reset Patient Baseline
-
-Current patient:
-
-Patient ID: P001
-Room: R101
-
-Run:
-
-Invoke-RestMethod -Uri "http://localhost:5000/api/patients/P001/baseline/reset" -Method POST
-
-### Run Baseline Demo
-
-node demo/baseline-demo.js
-
-This sends 10 normal readings and establishes the patient's personalized baseline.
-
-### Run Abnormal Demo
-
-node demo/abnormal-demo.js
-
-### Check Patient Result
-
-Invoke-RestMethod -Uri "http://localhost:5000/api/patients/P001"
+MongoDB connected successfully
+```
 
 ---
 
-# IoT Team — Continue From Here
+### Terminal 3 — React Website
 
-The current software uses simulated MQTT data.
+```powershell
+cd "C:\Users\Dhrupad\Desktop\Major project mobileapp\lifeguard_web"
+npm run dev
+```
 
-The next task is to replace:
+Then open the Vite URL, normally:
 
-demo/baseline-demo.js
-demo/abnormal-demo.js
-
-with the actual ESP32 patient monitoring node.
-
-## Patient MQTT Topic
-
-Publish patient vitals to:
-
-lifeguard/patient/P001/vitals
-
-## Required JSON Format
-
-{
-    "heartRate": 78,
-    "spo2": 97,
-    "temperature": 36.8
-}
-
-Required field names:
-
-heartRate
-spo2
-temperature
-
-Do not change these field names or the MQTT topic structure without coordinating with the software team.
+```text
+http://localhost:5173
+```
 
 ---
 
-# Target IoT Flow
+### Terminal 4 — Flutter App
 
-MAX30102
-├── Heart Rate
-└── SpO₂
+```powershell
+cd "C:\Users\Dhrupad\Desktop\Major project mobileapp\lifeguard_ai"
+flutter devices
+```
 
-DS18B20
-└── Temperature
-        ↓
-      ESP32
-        ↓ MQTT
-   Mosquitto Broker
-        ↓
-  Node.js Backend
-        ↓
-Baseline + Deviation
-        ↓
-   Random Forest
-        ↓
-   Risk + SHAP
+Check the emulator ID.
+
+If it is `emulator-5554`:
+
+```powershell
+flutter run -d emulator-5554
+```
+
+If Flutter shows a different ID, use that ID instead.
 
 ---
 
-# Immediate Goal
+## Then your hardware
 
-ESP32 + MAX30102 + DS18B20
-            ↓
-          MQTT
-            ↓
-Existing LifeGuard AI Pipeline
+Once the software is running:
 
-After patient-node integration, proceed with the Smart Room ESP32 and room sensors.
+**Room ESP32**
+
+* Wi-Fi connected
+* MQTT connected
+* Room 102 publishing
+
+**Patient ESP32**
+
+* Wi-Fi connected
+* MQTT connected
+* P003 publishing vitals
+
+Your current network is:
+
+```text
+Laptop / MQTT broker = 10.20.89.64
+Room ESP32           = 10.20.89.142
+Patient ESP32        = connected to same hotspot
+```
+
+### So the complete startup is:
+
+```text
+1. Mosquitto       → already running
+2. Python AI       → python ai_service.py
+3. Node backend    → node server.js
+4. React website   → npm run dev
+5. Flutter         → flutter run
+6. Room ESP32      → power on
+7. Patient ESP32   → power on
+```
+
+**Important:** Don't start another Mosquitto instance. Earlier, when you ran it manually, Windows reported that port `1883` was already in use. That means the broker is already running.
+
+And you **do not need to run an MQTT test publisher** for the normal demo—the two ESP32 nodes will provide the real data.
