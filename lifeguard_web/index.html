@@ -4,7 +4,33 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>lifeguard_web</title>
+    <title>LifeGuard AI — Patient Care Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              page: "#f8faf4",
+              lime: "#d1f34d",
+              brand: "#536500",
+              carbon: "#111827"
+            },
+            fontFamily: {
+              display: ['"Bebas Neue"', "Anton", "sans-serif"],
+              sans: ['"Plus Jakarta Sans"', "Manrope", "system-ui", "sans-serif"],
+              metric: ['"Space Grotesk"', "sans-serif"]
+            }
+          }
+        }
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

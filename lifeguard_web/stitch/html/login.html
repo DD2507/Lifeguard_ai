@@ -1,0 +1,199 @@
+<!DOCTYPE html><html class="h-full bg-[#f8faf4]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Log in — LifeGuard.ai Clinical Intelligence</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              lime: '#536500',
+              'lime-hover': '#3e4c00',
+              accent: '#d1f34d',
+              surface: '#f8faf4',
+              card: '#ffffff',
+              border: '#e2e8f0'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Space Grotesk', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif']
+          }
+        }
+      }
+    }
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+  /* Glassmorphism and ambient subtle drop */
+  .card-glow {
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.07), 0 0 1px 1px rgba(15, 23, 42, 0.05);
+  }
+  .card-glow:hover {
+    box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(15, 23, 42, 0.08);
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" data-snapdom="injected-import"><link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"></head>
+<body class="h-full bg-[#f8faf4] text-slate-900 font-sans antialiased overflow-x-hidden selection:bg-[#d1f34d] selection:text-slate-900">
+<!-- BEGIN: Main Viewport Container -->
+<div class="min-h-screen w-full flex flex-col justify-between px-6 py-6 md:px-12 md:py-8 lg:px-16 lg:py-8 max-w-[1720px] mx-auto relative">
+<!-- BEGIN: Top Navigation Header -->
+<header class="w-full flex items-center justify-between z-30 mb-6 lg:mb-0">
+<a aria-label="LifeGuard AI Home" class="inline-flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-[#536500] rounded-xl p-1" href="#">
+<div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center relative overflow-hidden transition-transform duration-300 group-hover:scale-105 shadow-sm">
+<svg class="w-5 h-5 text-[#d1f34d]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M12 4v16m-8-8h16"></path>
+</svg>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#d1f34d] animate-ping opacity-75"></span>
+</div>
+<span class="text-2xl font-bold tracking-tight text-slate-900 flex items-center" style="font-family: Anton, &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em; text-transform: uppercase;">
+        LifeGuard<span class="text-[#536500] font-extrabold">.ai</span>
+</span>
+</a>
+<div class="hidden sm:flex items-center gap-3 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-mono shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+</span>
+<span class="text-slate-800 font-semibold tracking-wide">SYSTEM CONNECTED</span>
+<span class="text-slate-300">|</span>
+<span class="text-slate-500">v4.2 Uptime 99.99%</span>
+</div>
+</header>
+<!-- END: Top Navigation Header -->
+<!-- BEGIN: Centered Login Card Stage -->
+<main class="w-full flex-1 flex items-center justify-center py-10 z-20">
+<section aria-label="Clinical Staff Sign In" class="w-full max-w-[480px]">
+<div class="w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 card-glow relative group/card transition-all duration-300 hover:border-slate-300 hover:-translate-y-1 hover:shadow-2xl">
+<!-- Subtle Card Corner Registration Dots -->
+<span aria-hidden="true" class="absolute top-4 left-4 w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/card:bg-[#536500] transition-colors duration-300"></span>
+<span aria-hidden="true" class="absolute top-4 right-4 w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/card:bg-[#536500] transition-colors duration-300"></span>
+<span aria-hidden="true" class="absolute bottom-4 left-4 w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/card:bg-[#536500] transition-colors duration-300"></span>
+<span aria-hidden="true" class="absolute bottom-4 right-4 w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/card:bg-[#536500] transition-colors duration-300"></span>
+<!-- Card Header -->
+<div class="mb-7 text-left">
+<h1 class="text-4xl sm:text-5xl font-normal text-slate-900 tracking-tight uppercase" style="font-family: Anton, &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.02em; line-height: 1.05;">Welcome back</h1>
+<p class="text-sm text-slate-600 mt-2 font-normal leading-relaxed" style="font-family: &quot;Space Grotesk&quot;, Inter, sans-serif;">It's good to see you. Sign in to your clinical station.</p>
+</div>
+<!-- Login Form -->
+<form class="space-y-4" method="POST" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2" for="clinical-id">
+              Email
+            </label>
+<div class="relative">
+<input class="block w-full rounded-xl bg-slate-50 border border-slate-300 hover:border-slate-400 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder-slate-400 text-sm px-4 py-3.5 outline-none transition-all duration-200" id="clinical-id" name="clinical-id" placeholder="doctor@hospital.org" required="" type="email">
+</div>
+</div>
+<!-- Password Field -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<label class="block text-xs font-semibold uppercase tracking-wider text-slate-700" for="password">
+                Password
+              </label>
+<a class="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors duration-200 focus:outline-none focus:underline" href="#forgot">
+                Forgot password?
+              </a>
+</div>
+<div class="relative">
+<input class="block w-full rounded-xl bg-slate-50 border border-slate-300 hover:border-slate-400 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder-slate-400 text-sm px-4 py-3.5 pr-11 outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••••••" required="" type="password">
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition-colors focus:outline-none" id="togglePassword" type="button">
+<svg class="h-5 w-5" fill="none" id="eyeIcon" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Primary Log In Button -->
+<div class="pt-2">
+<button class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium py-3.5 px-4 text-sm tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2" type="submit" style="font-family: &quot;Space Grotesk&quot;, Inter, sans-serif; font-weight: 600;">
+              Log in
+            </button>
+</div>
+<!-- Divider -->
+<div class="relative my-4 flex items-center justify-center">
+<div class="w-full border-t border-slate-200"></div>
+<span class="absolute bg-white px-3 text-xs text-slate-400 font-medium">or</span>
+</div>
+<!-- Alternative SSO Action Buttons -->
+<button class="w-full rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-medium py-3 px-4 text-xs tracking-wide flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.99] shadow-sm" type="button">
+<svg class="w-4 h-4 text-[#536500]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<rect height="16" rx="2" stroke-width="2" width="18" x="3" y="4"></rect>
+<circle cx="8.5" cy="10.5" r="2.5" stroke-width="1.8"></circle>
+<path d="M14 9h4m-4 4h4M6 16h12" stroke-linecap="round" stroke-width="1.8"></path>
+</svg>
+<span class="">Continue with Hospital SSO / Smartcard</span>
+</button>
+<button class="w-full rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 font-medium py-2.5 px-4 text-xs tracking-wide flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] shadow-sm" type="button">
+<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">Log in with biometric passkey</span>
+</button>
+</form>
+<!-- Help & Assistance Links -->
+<div class="mt-7 text-center space-y-2">
+<p class="text-xs text-slate-500">
+            Having trouble signing in? 
+            <a class="text-slate-800 font-medium hover:text-[#536500] underline underline-offset-2 transition-colors" href="#support">Contact Hospital IT Support</a>
+</p>
+<p class="text-[11px] text-slate-400">
+            HIPAA Compliant • 256-Bit Encrypted Clinical Station
+          </p>
+</div>
+</div>
+</section>
+</main>
+<!-- END: Centered Login Card Stage -->
+<!-- BEGIN: Page Footer Details -->
+<footer class="w-full pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 border-t border-slate-200/80 mt-6 lg:mt-0">
+<div class="">
+      © 2025 LifeGuard AI Health Technologies Inc. All rights reserved.
+    </div>
+<div class="flex items-center gap-6 mt-3 sm:mt-0">
+<a class="hover:text-slate-800 transition-colors" href="#">Emergency Protocol</a>
+<a class="hover:text-slate-800 transition-colors" href="#">Clinical Compliance</a>
+<a class="hover:text-slate-800 transition-colors" href="#">Privacy Policy</a>
+</div>
+</footer>
+<!-- END: Page Footer Details -->
+</div>
+<!-- END: Main Viewport Container -->
+<!-- BEGIN: Password Visibility Toggle Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (toggleBtn && passwordInput && eyeIcon) {
+      toggleBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        
+        if (isPassword) {
+          // Crossed Eye Icon (Hide password)
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+          `;
+        } else {
+          // Open Eye Icon (Show password)
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          `;
+        }
+      });
+    }
+  });
+</script>
+<!-- END: Password Visibility Toggle Script -->
+
+
+</body></html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeGuard AI - Patient Alerts Center</title>
+<!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Anton&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              pink: '#fad2e1',
+              pinkLight: '#fce7f3',
+              pinkSurface: '#fdf2f8',
+              dark: '#0f172a',
+              accent: '#0d9488',
+              alertRed: '#e11d48',
+              alertBg: '#fff1f2',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles: Animations & Background -->
+<style data-purpose="custom-styling">
+    body {
+      background-color: #fad2e1;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .pulse-dot {
+      animation: pulseAnimation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulseAnimation {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .4; transform: scale(1.15); }
+    }
+    
+    .alert-card-glow {
+      box-shadow: 0 4px 20px -2px rgba(225, 29, 72, 0.12);
+    }
+    
+    .alert-card-glow:hover {
+      box-shadow: 0 12px 30px -4px rgba(225, 29, 72, 0.2);
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900 pb-16">
+<!-- BEGIN: FloatingNavbar -->
+<!-- Pinned capsule floating navigation bar with clearance -->
+<header class="fixed top-4 left-0 right-0 z-50 px-6 flex items-center justify-between pointer-events-none sm:px-8" data-purpose="top-navigation-header">
+<!-- Left Navigation Pill Container -->
+<div class="pointer-events-auto bg-white/95 backdrop-blur-md rounded-full px-5 py-2.5 shadow-sm border border-slate-200/80 flex items-center gap-5 transition-all duration-300">
+<!-- Brand Logo Badge & Title -->
+<a class="flex items-center gap-3 group" href="#">
+<div class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-sm tracking-tight shadow-inner group-hover:scale-105 transition-transform">
+          LG
+        </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 leading-none">
+<span class="font-heading font-bold text-slate-900 text-base tracking-tight">LifeGuard</span>
+<span class="bg-slate-900 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded tracking-wide">AI</span>
+</div>
+<span class="text-[9px] font-semibold text-slate-400 tracking-wider mt-1 uppercase">Patient Care Intelligence</span>
+</div>
+</a>
+<!-- Thin Vertical Divider -->
+<div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+<!-- Telemetry System Status Indicator -->
+<div class="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full text-xs font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+<span class="">System Connected</span>
+</div>
+<!-- Navigation Tabs -->
+<nav class="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-600">
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-100/80 transition-colors" href="#">
+          Dashboard
+        </a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-100/80 transition-colors" href="#">
+          Patients
+        </a>
+<!-- Active Tab: Alerts with badge indicator -->
+<a class="px-4 py-1.5 rounded-full bg-slate-100 text-slate-900 font-semibold flex items-center gap-1.5 shadow-xs" href="#">
+<span class="">Alerts</span>
+<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+</a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-100/80 transition-colors" href="#">
+          Rooms
+        </a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-100/80 transition-colors" href="#">
+          Beds
+        </a>
+</nav>
+</div>
+<!-- Right Action Capsule Buttons -->
+<div class="pointer-events-auto flex items-center gap-3">
+<!-- Logout Button -->
+<button class="bg-white/95 backdrop-blur-md border border-slate-200/80 text-slate-700 hover:text-rose-600 hover:bg-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2">
+<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">Logout</span>
+</button>
+<!-- Live Monitor Active CTA -->
+<button class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+<span class="">Live Monitor</span>
+</button>
+</div>
+</header>
+<!-- END: FloatingNavbar -->
+<!-- BEGIN: MainContentWrapper -->
+<!-- Top clearance pt-36 ensures the fixed floating navbar never overlaps page content -->
+<main class="pt-32 lg:pt-36 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+<!-- BEGIN: AlertsHeaderSection -->
+<section class="mb-8" data-purpose="alerts-page-header">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h1 class="text-4xl lg:text-5xl font-display-condensed text-slate-900 tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Patient Alerts</h1>
+<span class="bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+              1 Active Alert
+            </span>
+</div>
+<p class="text-slate-600 text-base font-medium">
+            Patients requiring immediate or closer clinical attention.
+          </p>
+</div>
+<!-- Filter Pill Controls -->
+<div class="flex items-center gap-2 bg-white/70 backdrop-blur-sm p-1.5 rounded-2xl border border-rose-200/60 shadow-xs text-xs font-semibold">
+<button class="px-3.5 py-1.5 rounded-xl bg-white text-slate-900 shadow-xs border border-slate-200/70 font-bold">
+            All Alerts (1)
+          </button>
+<button class="px-3.5 py-1.5 rounded-xl text-rose-700 hover:bg-white/60 transition-colors">
+            High Risk (1)
+          </button>
+<button class="px-3.5 py-1.5 rounded-xl text-slate-600 hover:bg-white/60 transition-colors">
+            Moderate (0)
+          </button>
+<button class="px-3.5 py-1.5 rounded-xl text-slate-600 hover:bg-white/60 transition-colors">
+            Resolved (12)
+          </button>
+</div>
+</div>
+</section>
+<!-- END: AlertsHeaderSection -->
+<!-- BEGIN: ActiveAlertsFeed -->
+<section class="space-y-5 mb-12" data-purpose="active-alerts-container">
+<!-- High Priority Alert Card (Faithful to https://lh3.googleusercontent.com/aida-public/AB6AXuCMpKOnSDYlZhxXWhJGuiKJupJM-c0ZYRH9kSDGcCcgFSD6NpFCqUyQXuXxDMkySzz_1HxIjgz6EhcZpZ3jgNEBz0cb75VkbjcRAB4JecDfxXokeYWaPrxtbYoQuRym5sYGI465neZagwHJfFNcZUFiyt_qAt7iDp8C5aWMzjzNe1MjTehWzDTJl9kORjUcn5ubwaOcnRRK5kktI6ZZJUPj7qSpBeTOzH3HE1wYJKvlDI-JjqSzwZhxo_5uy23HxeFciQ with enhanced UX & details) -->
+<article class="bg-white rounded-3xl p-6 lg:p-7 border-l-8 border-l-rose-500 border border-rose-200/80 alert-card-glow hover:-translate-y-1 hover:shadow-xl transition-all duration-300" data-purpose="primary-high-risk-alert">
+<div class="flex flex-col gap-5">
+<!-- Top Row: Patient Meta & HIGH Severity Tag -->
+<div class="flex items-start justify-between flex-wrap gap-4">
+<div class="flex items-center gap-4">
+<!-- Warning Icon Badge -->
+<div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
+<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+</div>
+<!-- Patient Name, Room & ID -->
+<div>
+<div class="flex items-center gap-3">
+<h2 class="text-2xl font-display-condensed text-slate-900 tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Demo Patient</h2>
+<span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-md font-medium border border-slate-200">ID: #PT-9042</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 text-sm mt-0.5">
+<span class="flex items-center gap-1 font-semibold text-slate-700">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+                    Room R101
+                  </span>
+<span class="">•</span>
+<span class="">Bed 02 (ICU Ward A)</span>
+<span class="">•</span>
+<span class="text-rose-600 font-semibold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-rose-500 pulse-dot"></span>
+                    Triggered 3 mins ago
+                  </span>
+</div>
+</div>
+</div>
+<!-- Severity Badge & Action Controls -->
+<div class="flex items-center gap-3">
+<span class="bg-rose-500 text-white font-black text-xs px-3.5 py-1.5 rounded-full tracking-wider shadow-sm uppercase">
+                HIGH RISK
+              </span>
+<button class="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors" title="Alert Options">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Middle Row: Vital Sign Telemetry Readouts -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50/80 rounded-2xl border border-slate-100" data-purpose="vital-signs-metrics"><!-- Heart Rate -->
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/70 shadow-xs">
+<div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg">
+                ♥
+              </div>
+<div>
+<div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Heart Rate</div>
+<div class="text-2xl font-display-condensed text-rose-600 flex items-baseline gap-1">
+                  105 <span class="text-xs font-sans font-medium text-slate-500 uppercase tracking-normal">BPM</span>
+<span class="text-[10px] font-sans bg-rose-100 text-rose-700 px-1 rounded ml-1 font-bold uppercase tracking-normal">Elevated</span>
+</div>
+</div>
+</div>
+<!-- SpO2 -->
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/70 shadow-xs">
+<div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+                ≈
+              </div>
+<div>
+<div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Oxygen Saturation</div>
+<div class="text-2xl font-display-condensed text-amber-600 flex items-baseline gap-1">
+                  92% <span class="text-xs font-sans font-medium text-slate-500 uppercase tracking-normal">SpO₂</span>
+<span class="text-[10px] font-sans bg-amber-100 text-amber-700 px-1 rounded ml-1 font-bold uppercase tracking-normal">Low</span>
+</div>
+</div>
+</div>
+<!-- Body Temp -->
+<div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200/70 shadow-xs">
+<div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-lg">
+                ♨
+              </div>
+<div>
+<div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Body Temp</div>
+<div class="text-2xl font-display-condensed text-slate-700 flex items-baseline gap-1">
+                  -- <span class="text-xs font-sans font-medium text-slate-400 uppercase tracking-normal">°C</span>
+<span class="text-[10px] font-sans bg-slate-200 text-slate-600 px-1.5 rounded ml-1 font-semibold uppercase tracking-normal">Sensor Disconnected</span>
+</div>
+</div>
+</div></div>
+<!-- Bottom Row: Random Forest Model AI Prediction Box -->
+<div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4" data-purpose="ai-prediction-banner">
+<div class="flex items-start md:items-center gap-3">
+<div class="w-7 h-7 rounded-full bg-rose-200 text-rose-800 flex items-center justify-center shrink-0 mt-0.5 md:mt-0 font-bold text-xs">
+                AI
+              </div>
+<p class="text-rose-900 text-sm font-semibold leading-relaxed">
+<span class="font-extrabold uppercase tracking-wide">HIGH RISK</span> predicted by <span class="underline decoration-rose-300 font-bold">Random Forest</span> (Confidence: 98%). Key drivers: <span class="font-bold">Body Temperature, SpO₂, Heart Rate</span>.
+              </p>
+</div>
+<!-- Interactive Action CTAs -->
+<div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+<button class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all">
+                View Patient Details
+              </button>
+<button class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span class="">Acknowledge Alert</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+</section>
+<!-- END: ActiveAlertsFeed -->
+<!-- BEGIN: SecondaryTelemetryMonitoringSection -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10" data-purpose="secondary-telemetry-monitoring">
+<!-- Telemetry Health Status Card -->
+<div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 border border-rose-200/70 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-display-condensed text-slate-900 text-xl tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Cluster Health</h3>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-500">Node Latency</span>
+<span class="font-semibold text-slate-800">12ms (Optimal)</span>
+</div>
+<div class="w-full bg-slate-100 rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+<div class="flex justify-between items-center text-sm pt-2">
+<span class="text-slate-500">Wearables Online</span>
+<span class="font-semibold text-slate-800">42 / 43 Active</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-500">Inference Engine</span>
+<span class="font-semibold text-emerald-600">Model v2.4 Active</span>
+</div>
+</div>
+</div>
+<!-- Quick Escalation Protocol Card -->
+<div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 border border-rose-200/70 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-display-condensed text-slate-900 text-xl tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Rapid Escalation</h3>
+<span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-semibold">ICU Duty</span>
+</div>
+<p class="text-xs text-slate-500 mb-4">
+          Immediately notify on-call critical care response staff for Room R101 triage.
+        </p>
+<div class="flex gap-2">
+<button class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+<path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 4V3z"></path>
+</svg>
+<span class="">Call Rapid Response</span>
+</button>
+</div>
+</div>
+<!-- Vital Threshold Reference Card -->
+<div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 border border-rose-200/70 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-display-condensed text-slate-900 text-xl tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Alert Thresholds</h3>
+<span class="text-xs font-bold text-slate-400">Standard ICU</span>
+</div>
+<div class="space-y-2 text-xs">
+<div class="flex justify-between items-center py-1 border-b border-slate-100">
+<span class="text-slate-600 font-medium">Tachycardia Alert</span>
+<span class="font-bold text-rose-600">&gt; 100 BPM</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-slate-100">
+<span class="text-slate-600 font-medium">Hypoxia Warning</span>
+<span class="font-bold text-amber-600">&lt; 94% SpO₂</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="text-slate-600 font-medium">Pyrexia Critical</span>
+<span class="font-bold text-rose-600">&gt; 38.5 °C</span>
+</div>
+</div>
+</div>
+</section>
+<!-- END: SecondaryTelemetryMonitoringSection -->
+<!-- BEGIN: ResolvedAlertsHistory -->
+<section class="bg-white/95 backdrop-blur-md rounded-3xl p-6 lg:p-7 border border-rose-200/80 shadow-sm mb-12" data-purpose="alert-resolution-history">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+<div>
+<h3 class="font-display-condensed text-slate-900 text-2xl tracking-wide" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.04em;">Recent Alert Resolutions</h3>
+<p class="text-slate-500 text-xs mt-0.5">Audited log of acknowledged &amp; resolved patient telemetry alerts.</p>
+</div>
+<button class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 self-start sm:self-auto">
+<span class="">Export Audit Log</span>
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- History Table / List -->
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm text-slate-600">
+<thead>
+<tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+<th class="pb-3 pl-2">Patient &amp; Location</th>
+<th class="pb-3">Alert Trigger</th>
+<th class="pb-3">Model Confidence</th>
+<th class="pb-3">Resolved By</th>
+<th class="pb-3">Timestamp</th>
+<th class="pb-3 text-right pr-2">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 font-medium text-xs">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 pl-2 font-semibold text-slate-800">
+                Robert Chen <span class="text-slate-400 font-normal">· Room R108 (Bed 01)</span>
+</td>
+<td class="">
+<span class="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-semibold">
+                  SpO₂ Desaturation (91%)
+                </span>
+</td>
+<td class="text-slate-600 font-mono">Random Forest 91%</td>
+<td class="">Dr. Marcus Vance (RN)</td>
+<td class="text-slate-400">18 mins ago</td>
+<td class="text-right pr-2">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                  ✓ Stabilized
+                </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 pl-2 font-semibold text-slate-800">
+                Sarah Jenkins <span class="text-slate-400 font-normal">· Room R104 (Bed 03)</span>
+</td>
+<td class="">
+<span class="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-semibold">
+                  Telemetry Lead Detached
+                </span>
+</td>
+<td class="text-slate-600 font-mono">Heuristic Rule</td>
+<td class="">Nurse Elena Rostova</td>
+<td class="text-slate-400">42 mins ago</td>
+<td class="text-right pr-2">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                  ✓ Reconnected
+                </span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/70 transition-colors">
+<td class="py-3.5 pl-2 font-semibold text-slate-800">
+                David Kim <span class="text-slate-400 font-normal">· Room R112 (Bed 01)</span>
+</td>
+<td class="">
+<span class="inline-flex items-center gap-1.5 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md font-semibold">
+                  Sustained Tachycardia (118 BPM)
+                </span>
+</td>
+<td class="text-slate-600 font-mono">Random Forest 96%</td>
+<td class="">Dr. H. Thorne</td>
+<td class="text-slate-400">1h 14m ago</td>
+<td class="text-right pr-2">
+<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                  ✓ Medicated
+                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- END: ResolvedAlertsHistory -->
+<!-- BEGIN: ComplianceFooter -->
+<footer class="text-center text-xs font-medium text-slate-500/90 pt-4 pb-8" data-purpose="clinical-compliance-footer">
+<div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-xs px-4 py-2 rounded-full border border-rose-200/50 shadow-2xs">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">LifeGuard AI Clinical Engine v2.4</span>
+<span class="">•</span>
+<span class="">Telemetry Node: Cluster-A4</span>
+<span class="">•</span>
+<span class="">HIPAA Compliant</span>
+<span class="">•</span>
+<span class="">Encrypted Streaming Telemetry</span>
+</div>
+</footer>
+<!-- END: ComplianceFooter -->
+</main>
+<!-- END: MainContentWrapper -->
+
+
+
+
+</body></html>

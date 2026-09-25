@@ -1,0 +1,341 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeGuard AI - Patient Care Intelligence</title>
+<!-- Tailwind CSS CDN with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            page: '#f6f4ee',
+            cardBorder: '#e7dfd5',
+            brand: {
+              teal: '#0ea5e9',
+              dark: '#0a0f1d',
+              alert: '#ff3366',
+              warning: '#f43f5e',
+              success: '#10b981',
+              lime: '#d9f99d',
+            }
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(45, 38, 25, 0.05)',
+            'card-hover': '0 14px 30px -8px rgba(45, 38, 25, 0.1)',
+            'pill': '0 2px 12px rgba(0, 0, 0, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style data-purpose="custom-animations">
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+    .status-pulse {
+      animation: subtlePulse 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-body text-slate-900 antialiased selection:bg-rose-200 selection:text-rose-900 pb-20" style="background-color: #f6f4ee;">
+<!-- BEGIN: TopNavigationBar -->
+<header class="fixed top-4 left-0 right-0 z-50 px-6 max-w-7xl mx-auto flex items-center justify-between pointer-events-none transition-all duration-300" data-purpose="navbar-container">
+<!-- Left Continuous Pill Capsule -->
+<div class="pointer-events-auto rounded-full bg-white/95 backdrop-blur-md px-6 py-2.5 flex items-center gap-6 shadow-sm border border-black/5">
+<!-- Brand Logo & Title -->
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white font-extrabold text-sm shadow-sm tracking-tight font-sans transition-transform duration-200 hover:scale-105 cursor-pointer">
+        LG
+      </div>
+<div>
+<div class="flex items-center gap-1.5 leading-none">
+<span class="font-bold text-base tracking-tight font-sans text-slate-900">LifeGuard</span>
+<span class="bg-slate-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide">AI</span>
+</div>
+<p class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5 hidden sm:block">Patient Care Intelligence</p>
+</div>
+</div>
+<div class="h-4 w-px bg-slate-300 hidden md:block"></div>
+<!-- Live System Status Badge -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#f1f5f2] border border-emerald-300 text-emerald-800 text-xs font-semibold shadow-xs">
+<span class="relative flex h-2 w-2">
+<span class="status-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="tracking-tight text-[11px] whitespace-nowrap">System Connected</span>
+</div>
+<!-- Navigation Tabs Group -->
+<nav class="hidden lg:flex items-center text-sm font-medium gap-1 text-slate-600">
+<a class="px-4 py-1.5 rounded-full bg-slate-100 text-slate-900 font-bold transition-all" href="#">Dashboard</a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 transition-colors" href="#">Patients</a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 transition-colors flex items-center gap-1.5" href="#">
+<span class="">Alerts</span>
+<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+</a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 transition-colors" href="#">Rooms</a>
+<a class="px-3.5 py-1.5 rounded-full hover:text-slate-900 transition-colors" href="#">Beds</a>
+</nav>
+</div>
+<!-- Right Action Buttons (Separated Standalone Pills) -->
+<div class="pointer-events-auto flex items-center gap-3">
+<!-- Logout Button: White Pill -->
+<button class="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-full shadow-sm border border-slate-200 text-sm font-medium transition-all hover:scale-[1.02] active:scale-95 cursor-pointer" type="button">
+      Logout
+    </button>
+<!-- Live Monitor Button: Dark Pill -->
+<button class="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-full shadow-md text-sm font-medium transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95 cursor-pointer" type="button">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse hidden sm:inline-block"></span>
+<span class="">Live Monitor</span>
+</button>
+</div>
+</header>
+<!-- END: TopNavigationBar -->
+<!-- BEGIN: MainContent -->
+<main class="max-w-5xl mx-auto px-4 sm:px-6 pt-28 space-y-6">
+<!-- Shift Overview Banner -->
+<section class="bg-white rounded-3xl p-6 sm:p-8 border border-[#e8e2d8] shadow-sm flex items-center justify-between transition-all hover:shadow-card">
+<div class="space-y-1.5">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/60 text-amber-900 text-xs font-semibold uppercase tracking-wider font-sans">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+        Shift Overview • Intensive Care Unit
+      </div>
+<h1 class="text-3xl sm:text-4xl font-normal text-slate-900 tracking-wider pt-1 uppercase" style="font-family: &quot;Bebas Neue&quot;, sans-serif;">
+        Good morning, Doctor
+      </h1>
+<p class="text-sm text-slate-500 font-medium">
+        Here is the latest overview of your patients.
+      </p>
+</div>
+<div class="hidden sm:flex w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 items-center justify-center text-rose-500 shadow-xs">
+<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+</svg>
+</div>
+</section>
+<!-- 3 Summary Stat Cards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Stat 1: Total Patients -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-[#e8e2d8] shadow-sm flex flex-col justify-between hover:shadow-card transition-all">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans">Patients</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-4xl font-extrabold text-slate-900 font-sans tracking-tight">1</span>
+<span class="text-xs font-semibold text-slate-500">Active Admitted</span>
+</div>
+<p class="text-xs text-slate-400 mt-0.5">Bed R101 assigned</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold tracking-tight">
+          CAPACITY: 1/8
+        </span>
+</div>
+<!-- Sparkline svg -->
+<div class="mt-4 pt-2">
+<svg class="w-full h-9 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 24">
+<polyline fill="none" points="0,18 20,16 40,20 60,11 80,14 100,8" stroke="#3b82f6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></polyline>
+</svg>
+</div>
+</div>
+<!-- Stat 2: Low Risk -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-[#e8e2d8] shadow-sm flex flex-col justify-between hover:shadow-card transition-all">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans">Low Risk</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-4xl font-extrabold text-slate-900 font-sans tracking-tight">0</span>
+<span class="text-xs font-semibold text-slate-500">Normal Baseline</span>
+</div>
+<p class="text-xs text-slate-400 mt-0.5">0% of Census</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold">
+          Stable Status
+        </span>
+</div>
+<!-- Sparkline svg -->
+<div class="mt-4 pt-2">
+<svg class="w-full h-9 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 24">
+<polyline fill="none" points="0,14 25,14 50,14 75,14 100,14" stroke="#10b981" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></polyline>
+</svg>
+</div>
+</div>
+<!-- Stat 3: High Risk -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-[#e8e2d8] shadow-sm flex flex-col justify-between hover:shadow-card transition-all">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans">High Risk</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-4xl font-extrabold text-rose-600 font-sans tracking-tight">1</span>
+<span class="text-xs font-semibold text-rose-600">AI Predicted</span>
+</div>
+<p class="text-xs text-rose-500 mt-0.5 font-medium">Immediate triage</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
+          Critical Attention
+        </span>
+</div>
+<!-- Sparkline svg -->
+<div class="mt-4 pt-2">
+<svg class="w-full h-9 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 24">
+<polyline fill="none" points="0,20 25,18 45,12 70,15 85,6 100,4" stroke="#e11d48" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></polyline>
+</svg>
+</div>
+</div>
+</section>
+<!-- Active Alerts Section -->
+<section class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h2 class="text-2xl font-normal text-slate-900 tracking-wider flex items-center gap-1.5 uppercase" style="font-family: &quot;Bebas Neue&quot;, sans-serif;">
+<span class="">🚨</span> Active Alerts
+        </h2>
+<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-xs font-bold">1 Active</span>
+</div>
+</div>
+<!-- Active Alert Card -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-rose-200/80 shadow-sm hover:shadow-card transition-all">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+<div class="flex items-center gap-3.5">
+<div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+            ⚠
+          </div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-base font-bold text-slate-900 font-sans">Demo Patient</h3>
+<span class="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">HIGH</span>
+</div>
+<p class="text-xs text-slate-500 font-medium">Room R101 • Critical telemetry flags triggered</p>
+</div>
+</div>
+<!-- Vitals preview chips -->
+<div class="flex items-center gap-2 flex-wrap">
+<span class="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold">
+<span class="text-rose-500">♥</span> 105 BPM
+          </span>
+<span class="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold">
+<span class="text-sky-500">≈</span> 92% SpO2
+          </span>
+<span class="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 text-xs font-semibold">
+<span class="text-amber-500">♨</span> --°C
+          </span>
+</div>
+</div>
+<div class="mt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+<p class="text-slate-600 leading-relaxed">
+<span class="font-bold text-slate-800 uppercase tracking-wide font-sans">MODEL:</span> HIGH risk predicted by Random Forest (Confidence: 98%). Key drivers: Body Temperature, SpO2, Heart Rate.
+        </p>
+<button class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-all shadow-sm hover:scale-[1.02] active:scale-95 text-xs" type="button">
+          Acknowledge Alert
+        </button>
+</div>
+</div>
+</section>
+<!-- Patient Monitoring Section -->
+<section class="space-y-4 pt-2">
+<div class="flex items-center justify-between">
+<h2 class="text-2xl font-normal text-slate-900 tracking-wider uppercase" style="font-family: &quot;Bebas Neue&quot;, sans-serif;">Patient Monitoring</h2>
+<div class="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-[#e8e2d8]">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="">Live Data • Updates every 5 sec</span>
+</div>
+</div>
+<!-- 3 Patient/Room Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Card 1: Demo Patient HIGH RISK -->
+<div class="bg-white rounded-3xl p-5 border border-rose-300 shadow-sm hover:shadow-card transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold text-slate-400 font-sans">001</span>
+<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold uppercase">High Risk</span>
+</div>
+<h3 class="text-base font-bold text-slate-900 font-sans">Demo Patient</h3>
+<p class="text-xs text-slate-500 mb-4">Room R101</p>
+<div class="space-y-2 pt-2 border-t border-slate-100">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500">Heart Rate</span>
+<span class="font-bold text-slate-900">105 BPM</span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500">SpO2</span>
+<span class="font-bold text-slate-900">92%</span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500">Temperature</span>
+<span class="font-bold text-slate-900">38.2°C</span>
+</div>
+</div>
+</div>
+<div class="pt-5 mt-4 border-t border-slate-100">
+<a class="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center justify-between group" href="#">
+<span class="">View Patient Details</span>
+<span class="transition-transform group-hover:translate-x-1">→</span>
+</a>
+</div>
+</div>
+<!-- Card 2: Room R102 Available -->
+<div class="bg-white rounded-3xl p-5 border border-dashed border-slate-300 shadow-sm hover:shadow-card transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold text-slate-400 font-sans">R102</span>
+<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">Available</span>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xl mb-3">
+            +
+          </div>
+<h3 class="text-base font-bold text-slate-900 font-sans">Room R102 Available</h3>
+<p class="text-xs text-slate-500 mt-1">Telemetry ready for next patient intake</p>
+</div>
+<div class="pt-6">
+<button class="w-full py-2.5 px-4 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition-all shadow-xs" type="button">
+            Assign Patient
+          </button>
+</div>
+</div>
+<!-- Card 3: Room R103 Available -->
+<div class="bg-white rounded-3xl p-5 border border-dashed border-slate-300 shadow-sm hover:shadow-card transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold text-slate-400 font-sans">R103</span>
+<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">Available</span>
+</div>
+<div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xl mb-3">
+            +
+          </div>
+<h3 class="text-base font-bold text-slate-900 font-sans">Room R103 Available</h3>
+<p class="text-xs text-slate-500 mt-1">Connected to LifeGuard central hub</p>
+</div>
+<div class="pt-6">
+<button class="w-full py-2.5 px-4 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition-all shadow-xs" type="button">
+            Assign Patient
+          </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: MinimalFooter -->
+<footer class="max-w-5xl mx-auto px-4 sm:px-6 mt-12 text-center text-xs font-medium text-slate-500">
+<div class="flex flex-col sm:flex-row items-center justify-between border-t border-[#e2dad0] pt-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-semibold text-slate-700">LifeGuard AI Clinical Engine v2.4</span>
+</div>
+<p class="mt-2 sm:mt-0 text-slate-500">HIPAA Compliant • Encrypted Streaming Telemetry</p>
+</div>
+</footer>
+<!-- END: MinimalFooter -->
+
+
+</body></html>

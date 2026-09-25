@@ -1,0 +1,444 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeGuard AI - All Patients</title>
+<!-- Tailwind CSS CDN with forms and container queries plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk and Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Anton&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;display=swap" rel="stylesheet" class="">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              bg: '#b9d7fb',
+              dark: '#0f172a',
+              mint: '#00a884',
+              mintBg: '#e6fbf4',
+              coral: '#e5395b',
+              coralBg: '#ffedf1',
+              amber: '#d97706',
+              amberBg: '#fef7e6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- Typography and Custom Utility Styles -->
+<style data-purpose="typography">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #b9d7fb;
+      color: #0f172a;
+    }
+    .metric-num {
+      font-family: 'Space Grotesk', monospace;
+    }
+  </style>
+<style data-purpose="interactive-styles">
+    .patient-card-lift {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .patient-card-lift:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-sky-200 text-slate-800">
+<!-- BEGIN: MainHeader (Faithful to Ref 3) -->
+<header class="fixed top-4 left-0 right-0 z-50 px-6 sm:px-8 flex items-center justify-between pointer-events-none">
+  <!-- Left floating pill bar -->
+  <div class="pointer-events-auto bg-white/95 backdrop-blur-md rounded-full px-6 py-3 border border-slate-200/80 shadow-sm flex items-center gap-6">
+    <!-- Brand Lockup -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-[#0d141e] text-white flex items-center justify-center font-bold text-base select-none shrink-0 shadow-sm">
+        LG
+      </div>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xl font-extrabold text-[#0d141e] tracking-tight leading-none">LifeGuard</span>
+          <span class="bg-[#0d141e] text-white text-[11px] font-bold px-1.5 py-0.5 rounded leading-none">AI</span>
+        </div>
+        <span class="text-[10px] font-bold tracking-wider text-[#8b9bb4] uppercase mt-1 leading-none">PATIENT CARE INTELLIGENCE</span>
+      </div>
+    </div>
+
+    <!-- Vertical separator line -->
+    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+
+    <!-- Live Connection Status Badge -->
+    <div class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6fbf4] border border-[#a8edd8] text-[#00a884] text-xs font-semibold whitespace-nowrap">
+      <span class="w-2 h-2 rounded-full bg-[#00a884]"></span>
+      <span class="">System Connected</span>
+    </div>
+
+    <!-- Nav links matching reference layout -->
+    <nav aria-label="Main Navigation" class="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-600">
+      <a class="px-4 py-1.5 rounded-full bg-[#f1f4f9] text-[#0d141e] font-bold transition-all" href="#">Dashboard</a>
+      <a class="px-4 py-1.5 rounded-full text-slate-600 hover:text-slate-900 transition-colors" href="#">Patients</a>
+      <a class="px-4 py-1.5 rounded-full text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors" href="#">
+        <span class="">Alerts</span>
+        <span class="w-2 h-2 rounded-full bg-[#e5395b]"></span>
+      </a>
+      <a class="px-4 py-1.5 rounded-full text-slate-600 hover:text-slate-900 transition-colors" href="#">Rooms</a>
+      <a class="px-4 py-1.5 rounded-full text-slate-600 hover:text-slate-900 transition-colors" href="#">Beds</a>
+    </nav>
+  </div>
+
+  <!-- Right floating action pill buttons -->
+  <div class="pointer-events-auto flex items-center gap-3">
+    <button class="bg-white rounded-full px-5 py-2.5 text-sm font-medium border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 transition" type="button">
+      Logout
+    </button>
+    <button class="bg-slate-900 rounded-full px-5 py-2.5 text-sm font-medium text-white shadow-sm flex items-center gap-2 hover:bg-slate-800 transition whitespace-nowrap" type="button">
+      <span class="w-2 h-2 rounded-full bg-[#00a884]"></span>
+      <span class="">Live Monitor</span>
+    </button>
+  </div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 mx-auto w-full px-4 sm:px-6 lg:px-8 pb-10 max-w-5xl pt-28 sm:pt-32">
+<!-- BEGIN: Overview Hero Banner (Inspired by Image 2 Hero Card) -->
+<section class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 mb-8 mt-2 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+<div class="space-y-2">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#e6fbf4] border border-[#a8edd8] text-[#00a884] text-xs font-semibold"><span class="font-display-condensed text-xs uppercase tracking-wider">Shift Overview</span><span class="text-[#00a884]/60">•</span><span class="text-xs font-semibold">Intensive Care Unit</span></div>
+<h1 class="text-4xl sm:text-5xl font-display-condensed text-slate-900 uppercase font-normal" id="page-title" style="font-family: &quot;Bebas Neue&quot;, cursive, sans-serif; letter-spacing: 0.05em;">All Patients</h1>
+<p class="text-sm sm:text-base font-normal text-slate-500">
+        Here is the latest telemetry and clinical overview of your registered patients.
+      </p>
+</div>
+<!-- Right Quick Badges & Heart Status Icon from Ref Image 2 -->
+<div class="flex items-center gap-4 shrink-0">
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2.5"><div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f1f4f9] text-slate-700 text-xs font-semibold border border-slate-200/60"><span class="w-2 h-2 rounded-full bg-sky-500"></span><span class=""><strong class="font-display-condensed text-sm tracking-wide mr-1">3</strong>Active Patients</span></div><div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ffedf1] text-[#e5395b] text-xs font-semibold border border-[#ffd5df]"><span class="w-2 h-2 rounded-full bg-[#e5395b] animate-ping"></span><span class=""><strong class="font-display-condensed text-sm tracking-wide mr-1">1</strong>Critical Attention</span></div></div>
+<!-- Soft Mint Circular Heart Icon Badge from Ref Image 2 -->
+<div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#e6fbf4] text-[#00a884] flex items-center justify-center shadow-inner shrink-0">
+<svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+</svg>
+</div>
+</div>
+</section>
+<!-- END: Overview Hero Banner -->
+<!-- BEGIN: Filter & Search Bar Container -->
+<section class="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3" data-purpose="filtering-bar">
+<!-- Search Field -->
+<div class="relative flex-1 max-w-md">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<input class="block w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/70 rounded-full text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a884] focus:border-transparent transition-all" placeholder="Search by name, ID (e.g. 001), or room..." type="text">
+</div>
+<!-- Filter Pills (Image 2 Badge Style) -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0d141e] text-white shadow-xs transition-colors whitespace-nowrap">
+        All (3)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#ffedf1] text-[#e5395b] hover:bg-[#ffe3e9] border border-transparent transition-colors whitespace-nowrap flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#e5395b]"></span>
+        High Risk (1)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#fef7e6] text-[#d97706] hover:bg-[#feefcf] border border-transparent transition-colors whitespace-nowrap flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+        Moderate (1)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#e6fbf4] text-[#00a884] hover:bg-[#d5f7ec] border border-transparent transition-colors whitespace-nowrap flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00a884]"></span>
+        Stable (1)
+      </button>
+<div class="h-6 w-px bg-slate-200 mx-1"></div>
+<button class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors" title="Filter Ward / Dept">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</section>
+<!-- END: Filter & Search Bar Container -->
+<!-- BEGIN: PatientGridSection -->
+<section aria-label="Registered Patients Telemetry Feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- CARD 1: Demo Patient (High Risk) -->
+<article class="patient-card-lift bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-7 flex flex-col justify-between group">
+<div>
+<!-- Top Row: Icon Badge, Details, Status Chip -->
+<div class="flex flex-wrap items-start justify-between gap-2">
+  <div class="flex items-center gap-3.5 min-w-0">
+    <div class="w-12 h-12 rounded-2xl bg-[#ffedf1] text-[#e5395b] flex items-center justify-center font-display-condensed text-lg tracking-wider shrink-0 shadow-inner">001</div>
+    <div class="min-w-0">
+      <h2 class="text-2xl font-display-condensed uppercase text-slate-900 group-hover:text-[#e5395b] transition-colors truncate font-normal" style="font-family: &quot;Bebas Neue&quot;, cursive, sans-serif; letter-spacing: 0.05em;">Demo Patient</h2>
+      <div class="flex items-center gap-2 mt-0.5">
+        <span class="inline-flex items-center text-xs font-semibold text-slate-500 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+          Room R101
+        </span>
+        <span class="text-slate-300">•</span>
+        <span class="text-xs font-medium text-slate-500 whitespace-nowrap">Bed A</span>
+      </div>
+    </div>
+  </div>
+  <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#ffedf1] text-[#e5395b] tracking-wide shrink-0">
+    Critical Attention
+  </span>
+</div>
+<!-- Telemetry Micro-Tiles (Organized rounded-2xl) -->
+<div class="mt-6 grid grid-cols-3 gap-2.5 text-center">
+<!-- Heart Rate -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#e5395b] mb-1">
+<svg class="w-4 h-4 fill-current animate-pulse" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">105</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">BPM</span>
+</div>
+<!-- SpO2 -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#d97706] mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M3.75 9h16.5m-16.5 6.75h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">92%</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">SpO₂</span>
+</div>
+<!-- Temperature -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1 text-[#e5395b] mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">38.2°C</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Temp</span>
+</div>
+</div>
+<!-- Secondary Telemetry / BP Note -->
+<div class="mt-4 px-4 py-3 rounded-2xl bg-slate-50/80 border border-slate-100/60 flex items-center justify-between text-xs">
+<span class="text-slate-400 font-semibold tracking-wide uppercase text-[11px]">Blood Pressure</span>
+<span class="font-mono font-bold text-slate-800">138/88 mmHg</span>
+<span class="px-2.5 py-0.5 rounded-full bg-[#ffedf1] text-[#e5395b] text-[11px] font-bold">Elevated</span>
+</div>
+</div>
+<!-- Action Button -->
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center">
+<a class="inline-flex items-center gap-2 text-xs font-bold text-[#e5395b] hover:text-[#c42847] tracking-wider uppercase group-hover:gap-3 transition-all" href="#">
+<span class="">View Patient Details</span>
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</div>
+</article>
+<!-- CARD 2: Sarah Jenkins (Stable Status) -->
+<article class="patient-card-lift bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-7 flex flex-col justify-between group">
+<div>
+<!-- Top Row -->
+<div class="flex flex-wrap items-start justify-between gap-2">
+  <div class="flex items-center gap-3.5 min-w-0">
+    <div class="w-12 h-12 rounded-2xl bg-[#e6fbf4] text-[#00a884] flex items-center justify-center font-display-condensed text-lg tracking-wider shrink-0 shadow-inner">002</div>
+    <div class="min-w-0">
+      <h2 class="text-2xl font-display-condensed uppercase text-slate-900 group-hover:text-[#00a884] transition-colors truncate font-normal" style="font-family: &quot;Bebas Neue&quot;, cursive, sans-serif; letter-spacing: 0.05em;">Sarah Jenkins</h2>
+      <div class="flex items-center gap-2 mt-0.5">
+        <span class="inline-flex items-center text-xs font-semibold text-slate-500 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+          Room R104
+        </span>
+        <span class="text-slate-300">•</span>
+        <span class="text-xs font-medium text-slate-500 whitespace-nowrap">Bed C</span>
+      </div>
+    </div>
+  </div>
+  <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#e6fbf4] text-[#00a884] tracking-wide shrink-0">
+    Stable Status
+  </span>
+</div>
+<!-- Telemetry Micro-Tiles -->
+<div class="mt-6 grid grid-cols-3 gap-2.5 text-center">
+<!-- Heart Rate -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#00a884] mb-1">
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">72</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">BPM</span>
+</div>
+<!-- SpO2 -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#00a884] mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M3.75 9h16.5m-16.5 6.75h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">98%</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">SpO₂</span>
+</div>
+<!-- Temperature -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1 text-slate-600 mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">36.8°C</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Temp</span>
+</div>
+</div>
+<!-- Secondary Telemetry / BP Note -->
+<div class="mt-4 px-4 py-3 rounded-2xl bg-slate-50/80 border border-slate-100/60 flex items-center justify-between text-xs">
+<span class="text-slate-400 font-semibold tracking-wide uppercase text-[11px]">Blood Pressure</span>
+<span class="font-mono font-bold text-slate-800">118/76 mmHg</span>
+<span class="px-2.5 py-0.5 rounded-full bg-[#e6fbf4] text-[#00a884] text-[11px] font-bold">Optimal</span>
+</div>
+</div>
+<!-- Action Button -->
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center">
+<a class="inline-flex items-center gap-2 text-xs font-bold text-[#00a884] hover:text-[#008769] tracking-wider uppercase group-hover:gap-3 transition-all" href="#">
+<span class="">View Patient Details</span>
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</div>
+</article>
+<!-- CARD 3: Robert Chen (Moderate Risk) -->
+<article class="patient-card-lift bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-7 flex flex-col justify-between group">
+<div>
+<!-- Top Row -->
+<div class="flex flex-wrap items-start justify-between gap-2">
+  <div class="flex items-center gap-3.5 min-w-0">
+    <div class="w-12 h-12 rounded-2xl bg-[#fef7e6] text-[#d97706] flex items-center justify-center font-display-condensed text-lg tracking-wider shrink-0 shadow-inner">003</div>
+    <div class="min-w-0">
+      <h2 class="text-2xl font-display-condensed uppercase text-slate-900 group-hover:text-[#d97706] transition-colors truncate font-normal" style="font-family: &quot;Bebas Neue&quot;, cursive, sans-serif; letter-spacing: 0.05em;">Robert Chen</h2>
+      <div class="flex items-center gap-2 mt-0.5">
+        <span class="inline-flex items-center text-xs font-semibold text-slate-500 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+          Room R108
+        </span>
+        <span class="text-slate-300">•</span>
+        <span class="text-xs font-medium text-slate-500 whitespace-nowrap">Bed B</span>
+      </div>
+    </div>
+  </div>
+  <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#fef7e6] text-[#d97706] tracking-wide shrink-0">
+    Moderate Risk
+  </span>
+</div>
+<!-- Telemetry Micro-Tiles -->
+<div class="mt-6 grid grid-cols-3 gap-2.5 text-center">
+<!-- Heart Rate -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#d97706] mb-1">
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">88</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">BPM</span>
+</div>
+<!-- SpO2 -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1.5 text-[#d97706] mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M3.75 9h16.5m-16.5 6.75h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">95%</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">SpO₂</span>
+</div>
+<!-- Temperature -->
+<div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/60 flex flex-col items-center justify-center">
+<div class="flex items-center gap-1 text-[#d97706] mb-1">
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="metric-num text-sm sm:text-base font-extrabold text-slate-900">37.4°C</span>
+</div>
+<span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Temp</span>
+</div>
+</div>
+<!-- Secondary Telemetry / BP Note -->
+<div class="mt-4 px-4 py-3 rounded-2xl bg-slate-50/80 border border-slate-100/60 flex items-center justify-between text-xs">
+<span class="text-slate-400 font-semibold tracking-wide uppercase text-[11px]">Blood Pressure</span>
+<span class="font-mono font-bold text-slate-800">126/82 mmHg</span>
+<span class="px-2.5 py-0.5 rounded-full bg-[#fef7e6] text-[#d97706] text-[11px] font-bold">Watch</span>
+</div>
+</div>
+<!-- Action Button -->
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center">
+<a class="inline-flex items-center gap-2 text-xs font-bold text-[#d97706] hover:text-[#b45309] tracking-wider uppercase group-hover:gap-3 transition-all" href="#">
+<span class="">View Patient Details</span>
+<svg class="w-4 h-4 stroke-current" fill="none" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</div>
+</article>
+<!-- CARD 4: Available Room / Quick Intake Slot (Pure White rounded-[28px]) -->
+<article class="patient-card-lift bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-7 flex flex-col justify-between items-center text-center group relative">
+<div class="w-full flex justify-between items-center mb-4">
+<span class="px-3.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-mono font-bold">Room R102</span>
+<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#00a884] bg-[#e6fbf4] px-3 py-1 rounded-full">
+<span class="w-2 h-2 rounded-full bg-[#00a884]"></span>
+          Telemetry Standby
+        </span>
+</div>
+<div class="my-auto py-6 flex flex-col items-center">
+<!-- Soft Mint Circle Icon Container -->
+<div class="w-16 h-16 mb-4 rounded-full bg-[#e6fbf4] flex items-center justify-center text-[#00a884] group-hover:scale-110 transition-transform">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<h3 class="text-2xl font-display-condensed uppercase text-slate-900 font-normal" style="font-family: &quot;Bebas Neue&quot;, cursive, sans-serif; letter-spacing: 0.05em;">Bed 02 Available</h3>
+<p class="text-xs text-slate-500 max-w-xs mt-1.5 leading-relaxed">
+          LifeGuard sensors calibrated and ready for instant wireless vitals intake.
+        </p>
+</div>
+<button class="w-full py-3 px-5 bg-[#0d141e] hover:bg-[#1a2332] text-white text-xs font-bold rounded-full shadow-xs transition-colors flex items-center justify-center gap-2" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M18 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+        Assign Patient to Bed
+      </button>
+</article>
+</section>
+<!-- END: PatientGridSection -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: MainFooter -->
+<footer class="mt-auto py-6 border-t border-sky-300/40 bg-white/40 backdrop-blur-xs">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-600">
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 rounded-full bg-[#00a884]"></span>
+<span class="">LifeGuard AI System Node #04 • Clinical Stream Active</span>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<span class="">HIPAA Compliant • 256-bit Encrypted Telemetry</span>
+<span class="">© 2025 LifeGuard AI</span>
+</div>
+</div>
+</footer>
+<!-- END: MainFooter -->
+
+
+</body></html>
