@@ -1,18 +1,22 @@
 import { useMemo, useState } from "react";
 import AlertCard from "../components/AlertCard";
 
-export default function AlertsPage({ alerts, history, onOpenPatient, onResolveAlert }) {
+export default function AlertsPage({ alerts, history, onOpenPatient, onResolveAlert, onCompleteMedicine }) {
   const [filter, setFilter] = useState("ACTIVE");
   const high = alerts.filter((a) => a.risk === "HIGH").length;
   const moderate = alerts.filter((a) => a.risk === "MODERATE").length;
   const resolved = (history || []).filter((a) => a.status === "RESOLVED");
+  const completed = (history || []).filter((a) =>
+    a.alertType === "MEDICINE_DUE" && (a.status === "COMPLETED" || a.medicineStatus === "COMPLETED")
+  );
 
   const list = useMemo(() => {
     if (filter === "HIGH") return alerts.filter((a) => a.risk === "HIGH");
     if (filter === "MODERATE") return alerts.filter((a) => a.risk === "MODERATE");
     if (filter === "RESOLVED") return resolved;
+    if (filter === "COMPLETED") return completed;
     return alerts;
-  }, [alerts, filter, resolved]);
+  }, [alerts, filter, resolved, completed]);
 
   return (
     <>
@@ -33,7 +37,8 @@ export default function AlertsPage({ alerts, history, onOpenPatient, onResolveAl
             ["ACTIVE", `All Alerts (${alerts.length})`],
             ["HIGH", `High Risk (${high})`],
             ["MODERATE", `Moderate (${moderate})`],
-            ["RESOLVED", `Resolved (${resolved.length})`]
+            ["RESOLVED", `Resolved (${resolved.length})`],
+            ["COMPLETED", `Medicine Given (${completed.length})`]
           ].map(([id, label]) => (
             <button
               key={id}
@@ -56,7 +61,8 @@ export default function AlertsPage({ alerts, history, onOpenPatient, onResolveAl
               key={alert._id}
               alert={alert}
               onOpen={onOpenPatient}
-              onResolve={filter === "RESOLVED" ? undefined : onResolveAlert}
+              onResolve={filter === "RESOLVED" || filter === "COMPLETED" ? undefined : onResolveAlert}
+              onCompleteMedicine={filter === "RESOLVED" || filter === "COMPLETED" ? undefined : onCompleteMedicine}
             />
           ))
         )}

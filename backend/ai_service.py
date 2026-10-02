@@ -1,4 +1,5 @@
 import os
+import json
 import joblib
 import pandas as pd
 
@@ -19,19 +20,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = os.path.join("models", "random_forest_model.joblib")
-EXPLAINER_PATH = os.path.join("models", "shap_explainer.joblib")
+ARTIFACT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+MODEL_PATH = os.path.join(ARTIFACT_DIR, "random_forest_model.joblib")
+EXPLAINER_PATH = os.path.join(ARTIFACT_DIR, "shap_explainer.joblib")
+METADATA_PATH = os.path.join(ARTIFACT_DIR, "model_metadata.json")
 
 model = None
 explainer = None
+model_metadata = {}
 
 
 def load_artifacts():
-    global model, explainer
+    global model, explainer, model_metadata
 
     if os.path.exists(MODEL_PATH) and os.path.exists(EXPLAINER_PATH):
         model = joblib.load(MODEL_PATH)
         explainer = joblib.load(EXPLAINER_PATH)
+        if os.path.exists(METADATA_PATH):
+            with open(METADATA_PATH, "r", encoding="utf-8") as metadata_file:
+                model_metadata = json.load(metadata_file)
 
         print("Successfully loaded Random Forest Model and SHAP Explainer.")
     else:
@@ -74,7 +81,13 @@ def health_check():
         "status": "online",
         "service": "LifeGuard AI ML & SHAP Engine",
         "modelLoaded": model is not None,
-        "featureCount": 9
+        "featureCount": 9,
+        "modelProvenance": {
+            "trainedAt": model_metadata.get("trainedAt"),
+            "source": model_metadata.get("source"),
+            "labelMethod": model_metadata.get("labelMethod"),
+            "clinicallyValidated": False
+        }
     }
 
 
@@ -152,7 +165,7 @@ def predict_risk_and_explain(data: PatientRoomVitalsInput):
             "severity": severity,
             "explanation": (
                 f"{display_name} of {feat_val} {direction} "
-                f"risk prediction by {abs(impact_pct)}% "
+                f"the model score by approximately {abs(impact_pct)} percentage points "
                 f"(SHAP attribution)."
             )
         })
@@ -176,7 +189,8 @@ def predict_risk_and_explain(data: PatientRoomVitalsInput):
     )
 
     fan = (
-        data.roomTemperature > 30
+        data.roomTemperature < 22
+        or data.roomTemperature > 28
         or data.humidity > 70
         or data.airQuality > 200
     )
@@ -210,6 +224,12 @@ def predict_risk_and_explain(data: PatientRoomVitalsInput):
             "fan": fan,
             "buzzer": buzzer,
             "reason": action_reason
+        },
+        "modelProvenance": {
+            "source": model_metadata.get("source", {}).get("name"),
+            "doi": model_metadata.get("source", {}).get("doi"),
+            "trainedAt": model_metadata.get("trainedAt"),
+            "clinicallyValidated": False
         }
     }
 

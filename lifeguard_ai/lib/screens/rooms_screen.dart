@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
+
 class RoomsScreen extends StatelessWidget {
   final List<dynamic> rooms;
   final List<dynamic> patients;
@@ -7,23 +9,20 @@ class RoomsScreen extends StatelessWidget {
   final String error;
   final Future<void> Function() onRefresh;
 
-
   const RoomsScreen({
-  super.key,
-  required this.rooms,
-  required this.patients,
-  required this.loading,
-  required this.error,
-  required this.onRefresh,
-});
+    super.key,
+    required this.rooms,
+    required this.patients,
+    required this.loading,
+    required this.error,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (loading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF20C8C8),
-        ),
+        child: CircularProgressIndicator(color: LifeGuardColors.emerald),
       );
     }
 
@@ -37,22 +36,19 @@ class RoomsScreen extends StatelessWidget {
               const Icon(
                 Icons.cloud_off,
                 size: 50,
-                color: Color(0xFFFF6575),
+                color: LifeGuardColors.rose,
               ),
               const SizedBox(height: 15),
               Text(
                 error,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFFFF6575),
+                  color: LifeGuardColors.rose,
                   fontSize: 14,
                 ),
               ),
               const SizedBox(height: 15),
-              ElevatedButton(
-                onPressed: onRefresh,
-                child: const Text("Retry"),
-              ),
+              ElevatedButton(onPressed: onRefresh, child: const Text("Retry")),
             ],
           ),
         ),
@@ -61,26 +57,20 @@ class RoomsScreen extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      color: const Color(0xFF20C8C8),
+      color: LifeGuardColors.emerald,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
             "Smart Rooms",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 5),
 
           const Text(
             "Monitor room environment and connected IoT devices.",
-            style: TextStyle(
-              color: Color(0xFF8095A9),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: LifeGuardColors.muted, fontSize: 13),
           ),
 
           const SizedBox(height: 20),
@@ -88,21 +78,18 @@ class RoomsScreen extends StatelessWidget {
           // ==================================================
           // ROOM COUNT
           // ==================================================
-
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF12353B),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: const Color(0xFF14606A),
-              ),
+              color: LifeGuardColors.limeSoft,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: LifeGuardColors.border),
             ),
             child: Row(
               children: [
                 const Icon(
                   Icons.meeting_room_rounded,
-                  color: Color(0xFF20C8C8),
+                  color: LifeGuardColors.ink,
                 ),
 
                 const SizedBox(width: 12),
@@ -123,31 +110,25 @@ class RoomsScreen extends StatelessWidget {
           // ==================================================
           // ROOMS
           // ==================================================
-
           if (rooms.isEmpty)
             Container(
               padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
-                color: const Color(0xFF101C29),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: const Color(0xFF1B2D3D),
-                ),
+                color: LifeGuardColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: LifeGuardColors.border),
               ),
               child: const Column(
                 children: [
                   Icon(
                     Icons.meeting_room_outlined,
-                    color: Color(0xFF8095A9),
+                    color: LifeGuardColors.muted,
                     size: 45,
                   ),
                   SizedBox(height: 10),
                   Text(
                     "No rooms found",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -169,30 +150,23 @@ class RoomsScreen extends StatelessWidget {
   // ======================================================
 
   Widget _roomCard(dynamic room) {
-    final String roomId =
-        room["roomId"]?.toString() ?? "--";
+    final String roomId = room["roomId"]?.toString() ?? "--";
 
-    final String temperature =
-        room["temperature"] != null
-            ? "${room["temperature"]}°C"
-            : "--";
+    final String temperature = room["temperature"] != null
+        ? "${room["temperature"]}°C"
+        : "--";
 
-    final String humidity =
-        room["humidity"] != null
-            ? "${room["humidity"]}%"
-            : "--";
+    final String humidity = room["humidity"] != null
+        ? "${room["humidity"]}%"
+        : "--";
 
-    final String airQuality =
-        room["airQuality"]?.toString() ?? "--";
+    final String airQuality = room["airQuality"]?.toString() ?? "--";
 
-    final bool presenceDetected =
-        room["presenceDetected"] == true;
+    final bool presenceDetected = room["presenceDetected"] == true;
 
-    final bool fanStatus =
-        room["fanStatus"] == true;
+    final bool fanStatus = room["fanStatus"] == true;
 
-    final bool buzzerStatus =
-        room["buzzerStatus"] == true;
+    final bool buzzerStatus = room["buzzerStatus"] == true;
 
     return GestureDetector(
       onTap: () {
@@ -204,11 +178,9 @@ class RoomsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(18),
 
         decoration: BoxDecoration(
-          color: const Color(0xFF101C29),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0xFF1B2D3D),
-          ),
+          color: LifeGuardColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: LifeGuardColors.border),
         ),
 
         child: Column(
@@ -224,14 +196,13 @@ class RoomsScreen extends StatelessWidget {
                   height: 48,
 
                   decoration: BoxDecoration(
-                    color: const Color(0xFF12343A),
-                    borderRadius:
-                        BorderRadius.circular(15),
+                    color: LifeGuardColors.limeSoft,
+                    borderRadius: BorderRadius.circular(15),
                   ),
 
                   child: const Icon(
                     Icons.meeting_room_rounded,
-                    color: Color(0xFF20C9C3),
+                    color: LifeGuardColors.ink,
                     size: 26,
                   ),
                 ),
@@ -240,16 +211,14 @@ class RoomsScreen extends StatelessWidget {
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Room $roomId",
 
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
@@ -263,21 +232,15 @@ class RoomsScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           color: presenceDetected
-                              ? const Color(
-                                  0xFF43D17A,
-                                )
-                              : const Color(
-                                  0xFF8095A9,
-                                ),
+                              ? const Color(0xFF078B61)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                _statusBadge(
-                  room,
-                ),
+                _statusBadge(room),
               ],
             ),
 
@@ -286,7 +249,6 @@ class RoomsScreen extends StatelessWidget {
             // ================================================
             // ENVIRONMENT
             // ================================================
-
             Row(
               children: [
                 _environment(
@@ -307,7 +269,7 @@ class RoomsScreen extends StatelessWidget {
                   Icons.air_rounded,
                   airQuality,
                   "Air Quality",
-                  const Color(0xFF43D17A),
+                  LifeGuardColors.emerald,
                 ),
               ],
             ),
@@ -317,14 +279,12 @@ class RoomsScreen extends StatelessWidget {
             // ================================================
             // DEVICES
             // ================================================
-
             Container(
               padding: const EdgeInsets.all(11),
 
               decoration: BoxDecoration(
-                color: const Color(0xFF0D1722),
-                borderRadius:
-                    BorderRadius.circular(12),
+                color: LifeGuardColors.surfaceMuted,
+                borderRadius: BorderRadius.circular(12),
               ),
 
               child: Row(
@@ -332,7 +292,7 @@ class RoomsScreen extends StatelessWidget {
                   const Icon(
                     Icons.memory_rounded,
                     size: 16,
-                    color: Color(0xFF20C8C8),
+                    color: LifeGuardColors.emerald,
                   ),
 
                   const SizedBox(width: 7),
@@ -342,19 +302,18 @@ class RoomsScreen extends StatelessWidget {
                       "IoT Environment Controller",
                       style: TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF8095A9),
+                        color: LifeGuardColors.muted,
                       ),
                     ),
                   ),
 
                   if (fanStatus)
                     const Padding(
-                      padding:
-                          EdgeInsets.only(right: 8),
+                      padding: EdgeInsets.only(right: 8),
                       child: Icon(
                         Icons.air,
                         size: 16,
-                        color: Color(0xFF20C8C8),
+                        color: LifeGuardColors.emerald,
                       ),
                     ),
 
@@ -362,7 +321,7 @@ class RoomsScreen extends StatelessWidget {
                     const Icon(
                       Icons.notifications_active,
                       size: 16,
-                      color: Color(0xFFFF5C68),
+                      color: LifeGuardColors.rose,
                     ),
                 ],
               ),
@@ -378,28 +337,23 @@ class RoomsScreen extends StatelessWidget {
   // ======================================================
 
   Widget _statusBadge(dynamic room) {
-    final bool fan =
-        room["fanStatus"] == true;
+    final bool fan = room["fanStatus"] == true;
 
-    final bool buzzer =
-        room["buzzerStatus"] == true;
+    final bool buzzer = room["buzzerStatus"] == true;
 
     String status = "CONNECTED";
-    Color color = const Color(0xFF43D17A);
+    Color color = LifeGuardColors.emerald;
 
     if (buzzer) {
       status = "ALERT";
-      color = const Color(0xFFFF5C68);
+      color = LifeGuardColors.rose;
     } else if (fan) {
       status = "ACTIVE";
-      color = const Color(0xFF20C8C8);
+      color = LifeGuardColors.blue;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
 
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
@@ -422,30 +376,18 @@ class RoomsScreen extends StatelessWidget {
   // ENVIRONMENT
   // ======================================================
 
-  Widget _environment(
-    IconData icon,
-    String value,
-    String label,
-    Color color,
-  ) {
+  Widget _environment(IconData icon, String value, String label, Color color) {
     return Expanded(
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 22,
-          ),
+          Icon(icon, color: color, size: 22),
 
           const SizedBox(height: 7),
 
           Text(
             value,
 
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 3),
@@ -455,10 +397,7 @@ class RoomsScreen extends StatelessWidget {
 
             textAlign: TextAlign.center,
 
-            style: const TextStyle(
-              fontSize: 8,
-              color: Color(0xFF8095A9),
-            ),
+            style: const TextStyle(fontSize: 8, color: LifeGuardColors.muted),
           ),
         ],
       ),

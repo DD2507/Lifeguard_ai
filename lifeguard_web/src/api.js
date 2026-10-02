@@ -9,15 +9,10 @@ async function request(path, options = {}) {
     ...options
   });
 
-  let data = null;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const message = data?.error || `Request failed (${response.status})`;
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
     throw new Error(message);
   }
 
@@ -28,6 +23,11 @@ export const api = {
   patients: () => request("/patients"),
   patient: (id) => request(`/patients/${id}`),
   digitalTwin: (id) => request(`/patients/${id}/digital-twin`),
+  savePatientBaseline: (id, readings) =>
+    request(`/patients/${id}/baseline`, {
+      method: "POST",
+      body: JSON.stringify({ readings })
+    }),
   whatIf: (id, payload) =>
     request(`/patients/${id}/what-if`, {
       method: "POST",

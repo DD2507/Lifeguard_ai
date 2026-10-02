@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const { startMQTT } = require("./services/mqttBroker");
+const { registerSocketServer } = require("./services/notificationService");
+const { startPrescriptionReminderScheduler } = require("./services/prescriptionReminderScheduler");
 const app = express();
 
 const patientRoutes = require("./routes/patients");
@@ -26,6 +28,7 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
         console.log("MongoDB connected successfully");
+        startPrescriptionReminderScheduler();
     })
     .catch((error) => {
         console.error(
@@ -42,9 +45,10 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(
         `LifeGuard AI server running on http://localhost:${PORT}`
     );
-     startMQTT();
+    global.__lifeguardSocketServer = registerSocketServer(server);
+    startMQTT();
 });

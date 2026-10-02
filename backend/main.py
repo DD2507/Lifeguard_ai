@@ -160,7 +160,7 @@ def get_recommended_action(patient):
 
     room = get_room_context(patient)
 
-    fan = room["temperature"] >= 30
+    fan = room["temperature"] < 22 or room["temperature"] > 28
 
     risk = str(patient.risk).upper()
 

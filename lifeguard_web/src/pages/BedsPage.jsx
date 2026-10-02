@@ -69,43 +69,6 @@ export default function BedsPage({
         ))}
       </section>
 
-      {assignmentBed && (
-        <section className="bg-white rounded-2xl p-6 border border-slate-200">
-          <h3 className="font-display text-2xl">Assign Patient to {assignmentBed.bedId}</h3>
-          <select
-            className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-            value={assignmentPatientId}
-            onChange={(event) => setAssignmentPatientId(event.target.value)}
-          >
-            <option value="">Select a patient</option>
-            {patients.map((patient) => (
-              <option key={patient.patientId} value={patient.patientId}>
-                {patient.patientId} - {patient.name}
-              </option>
-            ))}
-          </select>
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              className="bg-slate-900 text-white rounded-full px-5 py-2 text-sm"
-              onClick={() => assignmentPatientId && assignBed(assignmentBed.bedId, assignmentPatientId)}
-            >
-              Assign Bed
-            </button>
-            <button
-              type="button"
-              className="border rounded-full px-5 py-2 text-sm"
-              onClick={() => {
-                setAssignmentBed(null);
-                setAssignmentPatientId("");
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </section>
-      )}
-
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/70 p-4 rounded-2xl border">
           <h2 className="text-2xl font-display">ICU Ward — Real-time Bed Status</h2>
@@ -247,6 +210,51 @@ export default function BedsPage({
                     Delete
                   </button>
                 </div>
+
+                {assignmentBed?.bedId === bed.bedId && (
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <label
+                      className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                      htmlFor={`assign-patient-${bed.bedId}`}
+                    >
+                      Select patient for Bed {bed.bedId}
+                    </label>
+                    <select
+                      id={`assign-patient-${bed.bedId}`}
+                      autoFocus
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                      value={assignmentPatientId}
+                      onChange={(event) => setAssignmentPatientId(event.target.value)}
+                    >
+                      <option value="">Select a patient</option>
+                      {patients.map((patient) => (
+                        <option key={patient.patientId} value={patient.patientId}>
+                          {patient.patientId} - {patient.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="rounded-full bg-slate-900 px-5 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!assignmentPatientId}
+                        onClick={() => assignBed(bed.bedId, assignmentPatientId)}
+                      >
+                        Confirm Assignment
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-full border border-slate-300 bg-white px-5 py-2 text-sm"
+                        onClick={() => {
+                          setAssignmentBed(null);
+                          setAssignmentPatientId("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </article>
             );
           })}

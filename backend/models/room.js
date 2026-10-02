@@ -12,24 +12,56 @@ const roomSchema = new mongoose.Schema(
         // DHT22
         temperature: {
             type: Number,
-            default: 0
+            default: null
         },
 
         humidity: {
             type: Number,
-            default: 0
+            default: null
         },
 
         // MQ135
         airQuality: {
             type: Number,
-            default: 0
+            default: null
+        },
+
+        source: {
+            type: String,
+            enum: ["MQTT", "API"],
+            default: null
+        },
+
+        sensorStatus: {
+            type: String,
+            enum: ["SENSOR_DISCONNECTED", "LIVE", "SENSOR_INVALID", "DATA_STALE"],
+            default: "SENSOR_DISCONNECTED"
+        },
+
+        lastMessageAt: {
+            type: Date,
+            default: null
+        },
+
+        lastValidReadingAt: {
+            type: Date,
+            default: null
+        },
+
+        lastSensorError: {
+            type: String,
+            default: ""
         },
 
         // PIR - optional
         presenceDetected: {
             type: Boolean,
-            default: false
+            default: null
+        },
+
+        presenceLastUpdatedAt: {
+            type: Date,
+            default: null
         },
 
         // Current room response
@@ -45,7 +77,7 @@ const roomSchema = new mongoose.Schema(
 
         lastUpdated: {
             type: Date,
-            default: Date.now
+            default: null
         }
     },
     {

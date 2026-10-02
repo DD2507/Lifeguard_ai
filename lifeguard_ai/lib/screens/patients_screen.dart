@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../app_theme.dart';
 import '../main.dart';
 
 class PatientsScreen extends StatelessWidget {
@@ -19,9 +21,7 @@ class PatientsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (loading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF20C8C8),
-        ),
+        child: CircularProgressIndicator(color: LifeGuardColors.emerald),
       );
     }
 
@@ -35,7 +35,7 @@ class PatientsScreen extends StatelessWidget {
               const Icon(
                 Icons.cloud_off,
                 size: 50,
-                color: Color(0xFFFF6575),
+                color: LifeGuardColors.rose,
               ),
 
               const SizedBox(height: 15),
@@ -44,17 +44,14 @@ class PatientsScreen extends StatelessWidget {
                 error,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFFFF6575),
+                  color: LifeGuardColors.rose,
                   fontSize: 14,
                 ),
               ),
 
               const SizedBox(height: 15),
 
-              ElevatedButton(
-                onPressed: onRefresh,
-                child: const Text("Retry"),
-              ),
+              ElevatedButton(onPressed: onRefresh, child: const Text("Retry")),
             ],
           ),
         ),
@@ -63,7 +60,7 @@ class PatientsScreen extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      color: const Color(0xFF20C8C8),
+      color: LifeGuardColors.emerald,
 
       child: patients.isEmpty
           ? ListView(
@@ -73,9 +70,7 @@ class PatientsScreen extends StatelessWidget {
                 Center(
                   child: Text(
                     "No patients found",
-                    style: TextStyle(
-                      color: Color(0xFF8497A3),
-                    ),
+                    style: TextStyle(color: LifeGuardColors.muted),
                   ),
                 ),
               ],
@@ -89,20 +84,14 @@ class PatientsScreen extends StatelessWidget {
 
                 const Text(
                   "All Patients",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 5),
 
                 const Text(
                   "View and monitor all registered patients.",
-                  style: TextStyle(
-                    color: Color(0xFF8497A3),
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: LifeGuardColors.muted, fontSize: 13),
                 ),
 
                 const SizedBox(height: 20),
@@ -110,24 +99,18 @@ class PatientsScreen extends StatelessWidget {
                 // ==========================================
                 // PATIENT COUNT
                 // ==========================================
-
                 Container(
                   padding: const EdgeInsets.all(16),
 
                   decoration: BoxDecoration(
-                    color: const Color(0xFF12353B),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: const Color(0xFF14606A),
-                    ),
+                    color: LifeGuardColors.limeSoft,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: LifeGuardColors.border),
                   ),
 
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.people,
-                        color: Color(0xFF20C8C8),
-                      ),
+                      const Icon(Icons.people, color: LifeGuardColors.ink),
 
                       const SizedBox(width: 12),
 
@@ -147,13 +130,7 @@ class PatientsScreen extends StatelessWidget {
                 // ==========================================
                 // PATIENT LIST
                 // ==========================================
-
-                ...patients.map(
-                  (patient) => _patientCard(
-                    context,
-                    patient,
-                  ),
-                ),
+                ...patients.map((patient) => _patientCard(context, patient)),
               ],
             ),
     );
@@ -163,33 +140,23 @@ class PatientsScreen extends StatelessWidget {
   // PATIENT CARD
   // ======================================================
 
-  Widget _patientCard(
-    BuildContext context,
-    dynamic patient,
-  ) {
-    final String patientId =
-        patient["patientId"]?.toString() ?? "Unknown";
+  Widget _patientCard(BuildContext context, dynamic patient) {
+    final String patientId = patient["patientId"]?.toString() ?? "Unknown";
 
-    final String name =
-        patient["name"]?.toString() ?? "Unknown Patient";
+    final String name = patient["name"]?.toString() ?? "Unknown Patient";
 
-    final String room =
-        patient["room"]?.toString() ?? "--";
+    final String room = patient["room"]?.toString() ?? "--";
 
-    final String risk =
-        patient["risk"]?.toString() ?? "LOW";
+    final String risk = patient["risk"]?.toString() ?? "LOW";
 
-    final dynamic heartRate =
-        patient["heartRate"] ?? "--";
+    final dynamic heartRate = patient["heartRate"] ?? "--";
 
-    final dynamic spo2 =
-        patient["spo2"] ?? "--";
+    final dynamic spo2 = patient["spo2"] ?? "--";
 
-    final dynamic temperature =
-        patient["temperature"] ?? "--";
+    final dynamic temperature = patient["temperature"] ?? "--";
 
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(8),
       onTap: () {
         Navigator.push(
           context,
@@ -201,169 +168,137 @@ class PatientsScreen extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
 
-      padding: const EdgeInsets.all(17),
+        padding: const EdgeInsets.all(17),
 
-      decoration: BoxDecoration(
-        color: const Color(0xFF141E2D),
-        borderRadius: BorderRadius.circular(18),
+        decoration: BoxDecoration(
+          color: LifeGuardColors.surface,
+          borderRadius: BorderRadius.circular(8),
 
-        border: Border.all(
-          color: const Color(0xFF263747),
+          border: Border.all(color: LifeGuardColors.border),
         ),
-      ),
 
-      child: Column(
-        children: [
-          // ================================================
-          // PATIENT HEADER
-          // ================================================
+        child: Column(
+          children: [
+            // ================================================
+            // PATIENT HEADER
+            // ================================================
 
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25,
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 25,
 
-                backgroundColor:
-                    const Color(0xFF103943),
+                  backgroundColor: LifeGuardColors.limeSoft,
+
+                  child: Text(
+                    patientId.replaceFirst("P", ""),
+
+                    style: const TextStyle(
+                      color: LifeGuardColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                    children: [
+                      Text(
+                        name,
+
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        "$patientId • Room $room",
+
+                        style: const TextStyle(
+                          color: LifeGuardColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                _riskBadge(risk),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            // ================================================
+            // VITALS
+            // ================================================
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+
+              decoration: BoxDecoration(
+                color: LifeGuardColors.surfaceMuted,
+
+                borderRadius: BorderRadius.circular(12),
+              ),
+
+              child: Row(
+                children: [
+                  _vital(Icons.favorite, "$heartRate BPM", "Heart Rate"),
+
+                  _vital(Icons.air, "$spo2%", "SpO₂"),
+
+                  _vital(Icons.thermostat, "$temperature°C", "Temperature"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ================================================
+            // RISK SCORE
+            // ================================================
+            if (patient["riskScore"] != null)
+              Align(
+                alignment: Alignment.centerLeft,
 
                 child: Text(
-                  patientId.replaceFirst("P", ""),
+                  "AI Risk Score: ${patient["riskScore"]}",
 
                   style: const TextStyle(
-                    color: Color(0xFF20C8C8),
-                    fontWeight: FontWeight.bold,
+                    color: LifeGuardColors.muted,
+                    fontSize: 11,
                   ),
                 ),
               ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-
-                  children: [
-                    Text(
-                      name,
-
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      "$patientId • Room $room",
-
-                      style: const TextStyle(
-                        color: Color(0xFF8497A3),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              _riskBadge(risk),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          // ================================================
-          // VITALS
-          // ================================================
-
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 14,
-            ),
-
-            decoration: BoxDecoration(
-              color: const Color(0xFF101A27),
-
-              borderRadius:
-                  BorderRadius.circular(12),
-            ),
-
-            child: Row(
-              children: [
-                _vital(
-                  Icons.favorite,
-                  "$heartRate BPM",
-                  "Heart Rate",
-                ),
-
-                _vital(
-                  Icons.air,
-                  "$spo2%",
-                  "SpO₂",
-                ),
-
-                _vital(
-                  Icons.thermostat,
-                  "$temperature°C",
-                  "Temperature",
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ================================================
-          // RISK SCORE
-          // ================================================
-
-          if (patient["riskScore"] != null)
-            Align(
-              alignment: Alignment.centerLeft,
-
-              child: Text(
-                "AI Risk Score: ${patient["riskScore"]}",
-
-                style: const TextStyle(
-                  color: Color(0xFF8497A3),
-                  fontSize: 11,
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ======================================================
   // VITAL
   // ======================================================
 
-  Widget _vital(
-    IconData icon,
-    String value,
-    String label,
-  ) {
+  Widget _vital(IconData icon, String value, String label) {
     return Expanded(
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 19,
-            color: const Color(0xFF20C8C8),
-          ),
+          Icon(icon, size: 19, color: LifeGuardColors.emerald),
 
           const SizedBox(height: 5),
 
           Text(
             value,
 
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 2),
@@ -371,10 +306,7 @@ class PatientsScreen extends StatelessWidget {
           Text(
             label,
 
-            style: const TextStyle(
-              color: Color(0xFF718692),
-              fontSize: 9,
-            ),
+            style: const TextStyle(color: LifeGuardColors.muted, fontSize: 9),
           ),
         ],
       ),
@@ -392,25 +324,22 @@ class PatientsScreen extends StatelessWidget {
     switch (risk.toUpperCase()) {
       case "HIGH":
       case "CRITICAL":
-        background = const Color(0xFF3B202D);
-        text = const Color(0xFFFF5B6E);
+        background = LifeGuardColors.roseSoft;
+        text = LifeGuardColors.rose;
         break;
 
       case "MODERATE":
-        background = const Color(0xFF393326);
-        text = const Color(0xFFF4B53F);
+        background = LifeGuardColors.amberSoft;
+        text = LifeGuardColors.amber;
         break;
 
       default:
-        background = const Color(0xFF12382F);
-        text = const Color(0xFF35D78A);
+        background = LifeGuardColors.emeraldSoft;
+        text = LifeGuardColors.emerald;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
 
       decoration: BoxDecoration(
         color: background,
@@ -420,11 +349,7 @@ class PatientsScreen extends StatelessWidget {
       child: Text(
         risk.toUpperCase(),
 
-        style: TextStyle(
-          color: text,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: text, fontSize: 9, fontWeight: FontWeight.bold),
       ),
     );
   }

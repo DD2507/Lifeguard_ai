@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 
 const Prescription = require("../models/Prescription");
 const Patient = require("../models/Patient");
+const { completeMedicineDose } = require("../services/prescriptionCompletionService");
+const { getNotificationSocket, notifyPrescriptionCreated } = require("../services/notificationService");
+const { resolveScheduledAt } = require("../services/prescriptionReminderScheduler");
 
 const router = express.Router();
 
@@ -31,6 +34,13 @@ router.post("/", async (req, res) => {
             });
         }
 
+        const scheduledAt = resolveScheduledAt({ scheduledAt: req.body.scheduledAt, scheduledTime, startDate });
+        if (!scheduledAt) {
+            return res.status(400).json({
+                error: "A valid scheduled date and time are required (Asia/Kolkata)"
+            });
+        }
+
         // Validate that patient exists in the system
         const patient = await Patient.findOne({ patientId: patientId.trim() });
         if (!patient) {
@@ -46,6 +56,7 @@ router.post("/", async (req, res) => {
             type: type || "Medication",
             dosage: dosage.trim(),
             scheduledTime: scheduledTime.trim(),
+            scheduledAt,
             frequency: frequency || "Once daily",
             startDate: startDate ? new Date(startDate) : new Date(),
             endDate: endDate ? new Date(endDate) : null,
@@ -53,6 +64,11 @@ router.post("/", async (req, res) => {
             instructions: instructions ? instructions.trim() : "",
             status: "ACTIVE"
         });
+
+        const io = getNotificationSocket();
+        if (io) {
+            notifyPrescriptionCreated(io, prescription.toObject ? prescription.toObject() : prescription);
+        }
 
         res.status(201).json(prescription);
     } catch (error) {
@@ -125,6 +141,13 @@ router.put("/:id", async (req, res) => {
             });
         }
 
+        const currentPrescription = await Prescription.findById(id);
+        if (!currentPrescription) {
+            return res.status(404).json({
+                error: "Prescription not found"
+            });
+        }
+
         const {
             treatmentName,
             type,
@@ -139,9 +162,19 @@ router.put("/:id", async (req, res) => {
         } = req.body;
 
         const updateData = {};
-        if (treatmentName !== undefined) updateData.treatmentName = treatmentName.trim();
+        if (treatmentName !== undefined) {
+            if (typeof treatmentName !== "string" || !treatmentName.trim()) {
+                return res.status(400).json({ error: "treatmentName cannot be empty" });
+            }
+            updateData.treatmentName = treatmentName.trim();
+        }
         if (type !== undefined) updateData.type = type;
-        if (dosage !== undefined) updateData.dosage = dosage.trim();
+        if (dosage !== undefined) {
+            if (typeof dosage !== "string" || !dosage.trim()) {
+                return res.status(400).json({ error: "dosage cannot be empty" });
+            }
+            updateData.dosage = dosage.trim();
+        }
         if (scheduledTime !== undefined) updateData.scheduledTime = scheduledTime.trim();
         if (frequency !== undefined) updateData.frequency = frequency;
         if (startDate !== undefined) updateData.startDate = new Date(startDate);
@@ -157,9 +190,40 @@ router.put("/:id", async (req, res) => {
             updateData.status = status;
         }
 
+        const scheduleChanged =
+            scheduledTime !== undefined ||
+            startDate !== undefined ||
+            req.body.scheduledAt !== undefined;
+        if (scheduleChanged || !currentPrescription.scheduledAt) {
+            const scheduledAt = resolveScheduledAt({
+                scheduledAt: req.body.scheduledAt,
+                scheduledTime: scheduledTime ?? currentPrescription.scheduledTime,
+                startDate: startDate ?? currentPrescription.startDate
+            });
+            if (scheduleChanged && !scheduledAt) {
+                return res.status(400).json({
+                    error: "A valid scheduled date and time are required (Asia/Kolkata)"
+                });
+            }
+            if (scheduledAt) {
+                updateData.scheduledAt = scheduledAt;
+            }
+        }
+
+        const update = { $set: updateData };
+        if (scheduleChanged) {
+            update.$unset = {
+                reminderDeliveredAt: 1,
+                reminderEmittedAt: 1,
+                reminderClaimedAt: 1,
+                reminderClaimToken: 1,
+                reminderAlertId: 1
+            };
+        }
+
         const prescription = await Prescription.findByIdAndUpdate(
             id,
-            updateData,
+            update,
             { new: true, runValidators: true }
         );
 
@@ -201,11 +265,12 @@ router.patch("/:id/status", async (req, res) => {
             });
         }
 
-        const prescription = await Prescription.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true }
-        );
+        const completion = status === "COMPLETED"
+            ? await completeMedicineDose({ prescriptionId: id })
+            : null;
+        const prescription = completion?.prescription || (status === "COMPLETED"
+            ? null
+            : await Prescription.findByIdAndUpdate(id, { status }, { new: true }));
 
         if (!prescription) {
             return res.status(404).json({

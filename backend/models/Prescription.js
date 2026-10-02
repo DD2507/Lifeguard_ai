@@ -46,6 +46,21 @@ const prescriptionSchema = new mongoose.Schema(
             trim: true
         },
 
+        scheduledAt: {
+            type: Date,
+            index: true
+        },
+
+        reminderDeliveredAt: {
+            type: Date,
+            default: undefined
+        },
+
+        reminderEmittedAt: { type: Date, default: undefined },
+        reminderClaimedAt: { type: Date, default: undefined },
+        reminderClaimToken: { type: String, default: undefined },
+        reminderAlertId: { type: String, default: undefined },
+
         frequency: {
             type: String,
             enum: [
@@ -92,5 +107,7 @@ const prescriptionSchema = new mongoose.Schema(
         timestamps: true
     }
 );
+
+prescriptionSchema.index({ status: 1, scheduledAt: 1, reminderDeliveredAt: 1 });
 
 module.exports = mongoose.model("Prescription", prescriptionSchema);

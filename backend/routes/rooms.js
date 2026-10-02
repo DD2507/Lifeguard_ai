@@ -2,9 +2,27 @@ const express = require("express");
 
 const Room = require("../models/room");
 const Patient = require("../models/Patient");
-const Alert = require("../models/Alert");
 
-const { calculateRisk } = require("../services/riskEngine");
+const { effectiveBaselineStatus, getSensorStatus } = require("../services/patientVitalService");
+const { presentRoom } = require("../services/roomSensorService");
+
+function waitingRoom102() {
+    return {
+        roomId: "102",
+        temperature: null,
+        humidity: null,
+        airQuality: null,
+        presenceDetected: null,
+        sensorStatus: "WAITING",
+        connected: false,
+        lastMessageAt: null,
+        lastValidReadingAt: null,
+        lastSensorError: "",
+        source: null,
+        fanStatus: false,
+        buzzerStatus: false
+    };
+}
 
 const router = express.Router();
 
@@ -14,7 +32,12 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
-        const rooms = await Room.find().sort({ roomId: 1 });
+        const documents = await Room.find().sort({ roomId: 1 });
+        const rooms = documents.map((room) => presentRoom(room));
+        if (!rooms.some((room) => String(room.roomId) === "102")) {
+            rooms.push(waitingRoom102());
+            rooms.sort((left, right) => String(left.roomId).localeCompare(String(right.roomId), undefined, { numeric: true }));
+        }
 
         res.json(rooms);
 
@@ -43,7 +66,7 @@ router.get("/:id", async (req, res) => {
             });
         }
 
-        res.json(room);
+        res.json(presentRoom(room));
 
     } catch (error) {
         console.error("Failed to fetch room:", error);
@@ -100,135 +123,22 @@ router.post("/:id/environment", async (req, res) => {
                 presenceDetected: room.presenceDetected
             };
 
-            const riskResult = calculateRisk(
-                {
-                    heartRate: patient.heartRate,
-                    spo2: patient.spo2,
-                    temperature: patient.temperature
-                },
-                roomContext
-            );
-
-            // Update patient risk
-            patient.risk = riskResult.risk;
-            patient.riskScore = riskResult.riskScore;
-            patient.riskReasons = riskResult.riskReasons;
-            patient.riskSummary = riskResult.riskSummary;
-            patient.recommendedAction =
-                riskResult.recommendedAction;
+            // Keep the patient-facing room snapshot current even while its
+            // physiological sensor or baseline is unavailable.
             patient.roomContext = roomContext;
-
             await patient.save();
 
-            // ==================================================
-            // ALERT MANAGEMENT
-            // ==================================================
-
-            if (
-                riskResult.risk === "HIGH" ||
-                riskResult.risk === "MODERATE"
-            ) {
-
-                const existingAlert = await Alert.findOne({
-                    patientId: patient.patientId,
-                    status: "ACTIVE"
-                });
-
-                if (existingAlert) {
-
-                    existingAlert.risk =
-                        riskResult.risk;
-
-                    existingAlert.riskScore =
-                        riskResult.riskScore;
-
-                    existingAlert.reasons =
-                        riskResult.riskReasons;
-
-                    existingAlert.summary =
-                        riskResult.riskSummary;
-
-                    existingAlert.recommendedAction =
-                        riskResult.recommendedAction;
-
-                    existingAlert.room =
-                        patient.room;
-
-                    await existingAlert.save();
-
-                } else {
-
-                    await Alert.create({
-
-                        patientId:
-                            patient.patientId,
-
-                        patientName:
-                            patient.name,
-
-                        room:
-                            patient.room,
-
-                        risk:
-                            riskResult.risk,
-
-                        riskScore:
-                            riskResult.riskScore,
-
-                        reasons:
-                            riskResult.riskReasons,
-
-                        summary:
-                            riskResult.riskSummary,
-
-                        recommendedAction:
-                            riskResult.recommendedAction,
-
-                        status: "ACTIVE"
-                    });
-                }
-
-            } else {
-
-                // LOW RISK → RESOLVE ALERT
-
-                await Alert.updateMany(
-                    {
-                        patientId:
-                            patient.patientId,
-
-                        status: "ACTIVE"
-                    },
-                    {
-                        status: "RESOLVED",
-
-                        resolvedAt:
-                            new Date()
-                    }
-                );
-            }
-
             updatedPatients.push({
-                patientId:
-                    patient.patientId,
-
-                name:
-                    patient.name,
-
-                risk:
-                    patient.risk,
-
-                riskScore:
-                    patient.riskScore,
-
-                riskReasons:
-                    patient.riskReasons,
-
-                riskSummary:
-                    patient.riskSummary,
-
-                recommendedAction:
-                    patient.recommendedAction
+                patientId: patient.patientId,
+                name: patient.name,
+                risk: effectiveBaselineStatus(patient) === "ESTABLISHED"
+                    ? patient.risk
+                    : null,
+                riskScore: effectiveBaselineStatus(patient) === "ESTABLISHED"
+                    ? patient.riskScore
+                    : null,
+                baselineStatus: effectiveBaselineStatus(patient),
+                sensorStatus: getSensorStatus(patient)
             });
         }
 

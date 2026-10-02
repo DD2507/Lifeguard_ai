@@ -2,18 +2,6 @@ const express = require("express");
 
 
 const Vital = require("../models/Vital");
-const Room = require("../models/room");
-const Alert = require("../models/Alert");
-
-const { predictWithAI } = require("../services/aiClient");
-
-const {
-    BASELINE_SAMPLE_COUNT,
-    addSample,
-    calculateBaseline,
-    calculateDeviation
-} = require("../services/baselineService");
-
 const {
     processPatientVital
 } = require("../services/patientVitalService");
@@ -31,134 +19,22 @@ router.post("/:patientId", async (req, res) => {
         const result =
             await processPatientVital(
                 patientId,
-                req.body
+                req.body,
+                { source: "API" }
             );
 
-        if (
-            result.baselineStatus ===
-            "COLLECTING"
-        ) {
-            return res.json({
-                message:
-                    "Baseline collection in progress",
-
-                baseline:
-                    result.baseline,
-
-                patient: {
-                    patientId:
-                        result.patient.patientId,
-
-                    name:
-                        result.patient.name,
-
-                    room:
-                        result.patient.room,
-
-                    heartRate:
-                        result.patient.heartRate,
-
-                    spo2:
-                        result.patient.spo2,
-
-                    temperature:
-                        result.patient.temperature
-                }
+        if (result.ignored) {
+            return res.status(202).json({
+                message: "HTTP-submitted readings are not accepted as live IoT data",
+                baselineStatus: result.baselineStatus,
+                sensorStatus: result.sensorStatus
             });
         }
 
-        if (
-            result.baselineStatus ===
-            "ESTABLISHED" &&
-            !result.risk
-        ) {
-            return res.json({
-                message:
-                    "Baseline established",
-
-                baseline:
-                    result.baseline,
-
-                baselineDeviation:
-                    result.baselineDeviation,
-
-                patient: {
-                    patientId:
-                        result.patient.patientId,
-
-                    name:
-                        result.patient.name,
-
-                    room:
-                        result.patient.room,
-
-                    heartRate:
-                        result.patient.heartRate,
-
-                    spo2:
-                        result.patient.spo2,
-
-                    temperature:
-                        result.patient.temperature
-                }
-            });
-        }
-
-        res.json({
-            message:
-                "Patient vitals processed successfully",
-
-            patient: {
-                patientId:
-                    result.patient.patientId,
-
-                name:
-                    result.patient.name,
-
-                room:
-                    result.patient.room,
-
-                heartRate:
-                    result.patient.heartRate,
-
-                spo2:
-                    result.patient.spo2,
-
-                temperature:
-                    result.patient.temperature,
-
-                baseline:
-                    result.patient.baseline,
-
-                baselineDeviation:
-                    result.baselineDeviation,
-
-                risk:
-                    result.risk.risk,
-
-                riskScore:
-                    result.risk.riskScore,
-
-                riskReasons:
-                    result.risk.riskReasons,
-
-                riskSummary:
-                    result.risk.riskSummary,
-
-                recommendedAction:
-                    result.risk.recommendedAction,
-
-                roomContext:
-                    result.patient.roomContext
-            },
-
-            history: {
-                id:
-                    result.vital._id,
-
-                timestamp:
-                    result.vital.createdAt
-            }
+        res.status(202).json({
+            message: "HTTP-submitted readings are not accepted as live IoT data",
+            baselineStatus: result.baselineStatus,
+            sensorStatus: result.sensorStatus
         });
 
     } catch (error) {
@@ -188,8 +64,8 @@ router.get("/:patientId/history", async (req, res) => {
 
         const vitals =
             await Vital.find({
-                patientId:
-                    req.params.patientId
+                patientId: req.params.patientId,
+                source: "MQTT"
             })
                 .sort({
                     createdAt: -1

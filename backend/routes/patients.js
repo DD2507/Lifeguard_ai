@@ -5,10 +5,19 @@ const Vital = require("../models/Vital");
 const Room = require("../models/room");
 
 const {
-    resetBaseline
+    BASELINE_SAMPLE_COUNT,
+    validateReading,
+    isNormalBaselineReading,
+    calculateBaseline,
+    calculateDeviation
 } = require("../services/baselineService");
+const {
+    effectiveBaselineStatus,
+    getSensorStatus
+} = require("../services/patientVitalService");
+const { presentRoom } = require("../services/roomSensorService");
 
-const { predictWithAI } = require("../services/aiClient");
+const { calculateBaselineSimulationRisk } = require("../services/baselineSimulationRisk");
 
 const {
     computeBaselineFromHistory,
@@ -19,6 +28,68 @@ const {
 } = require("../services/digitalTwinService");
 
 const router = express.Router();
+
+function presentPatient(patient, roomDocument = null) {
+    const data = patient.toObject();
+    const baselineStatus = effectiveBaselineStatus(patient);
+    const sensorStatus = getSensorStatus(patient);
+    const hasValidLiveReading = Boolean(patient.lastValidReadingAt);
+    const handDetected = patient.fingerDetected === true;
+
+    data.baselineStatus = baselineStatus;
+    data.baselineRequiredSamples = BASELINE_SAMPLE_COUNT;
+    data.sensorStatus = sensorStatus;
+
+    if (roomDocument) {
+        const liveRoom = presentRoom(roomDocument);
+        data.roomContext = {
+            temperature: liveRoom.temperature,
+            humidity: liveRoom.humidity,
+            airQuality: liveRoom.airQuality,
+            presenceDetected: liveRoom.presenceDetected
+        };
+    }
+
+    if (baselineStatus !== "ESTABLISHED") {
+        const validSampleCount = (data.baseline?.calibrationSamples || [])
+            .filter((sample) => validateReading(sample).valid).length;
+        data.baseline = {
+            ...data.baseline,
+            heartRate: null,
+            spo2: null,
+            temperature: null,
+            sampleCount: validSampleCount,
+            established: false,
+            calibrationStatus: "BASELINE_CALIBRATING"
+        };
+    }
+
+    if (!hasValidLiveReading) {
+        data.heartRate = null;
+        data.spo2 = null;
+        data.temperature = null;
+    }
+
+    if (!handDetected || baselineStatus !== "ESTABLISHED" || !hasValidLiveReading || sensorStatus !== "LIVE") {
+        data.risk = null;
+        data.riskScore = null;
+        data.aiRisk = null;
+        data.aiConfidence = null;
+        data.aiInferenceAt = null;
+        data.riskReasons = [];
+        data.riskSummary = !handDetected
+            ? "Hand not detected. Place a finger on the pulse-oximeter sensor to show the risk."
+            : baselineStatus !== "ESTABLISHED"
+                ? "Calculate the 15-reading patient baseline to show the risk."
+                : sensorStatus === "SENSOR_INVALID"
+                    ? `SENSOR_INVALID: ${patient.lastSensorError || "latest sensor packet failed validation"}; risk score withheld.`
+                    : sensorStatus === "DATA_STALE"
+                ? "DATA_STALE: no recent valid sensor packet; risk score withheld."
+                        : "No valid live sensor reading has been received.";
+    }
+
+    return data;
+}
 
 function buildRoomContext(roomDocument) {
     if (!roomDocument) {
@@ -63,23 +134,6 @@ function buildDeviationValues(currentState, baseline) {
     };
 }
 
-function buildAiFeatureVector(state, roomContext, baseline) {
-    const deviations = buildDeviationValues(state, baseline);
-
-    return {
-        heartRate: Number(state.heartRate),
-        spo2: Number(state.spo2),
-        temperature: Number(state.temperature),
-        roomTemperature: Number(roomContext.temperature ?? 24),
-        humidity: Number(roomContext.humidity ?? 50),
-        airQuality: Number(roomContext.airQuality ?? 100),
-        hrDeviation: deviations.heartRate ?? 0,
-        spo2Deviation: deviations.spo2 ?? 0,
-        tempDeviation: deviations.temperature ?? 0
-    };
-}
-
-
 // CREATE PATIENT
 router.post("/", async (req, res) => {
     try {
@@ -117,6 +171,89 @@ router.post("/", async (req, res) => {
 
 
 // RESET PATIENT BASELINE
+router.post("/:patientId/baseline", async (req, res) => {
+    try {
+        const patient = await Patient.findOne({ patientId: req.params.patientId });
+        if (!patient) {
+            return res.status(404).json({ error: "Patient not found" });
+        }
+
+        const readings = req.body?.readings;
+        if (
+            !Array.isArray(readings) ||
+            readings.length !== BASELINE_SAMPLE_COUNT
+        ) {
+            return res.status(400).json({
+                error: `Exactly ${BASELINE_SAMPLE_COUNT} valid MQTT readings are required`
+            });
+        }
+
+        const normalizedReadings = [];
+        const seenTimestamps = new Set();
+        for (const reading of readings) {
+            const suppliedSensorStatus = String(reading?.sensorStatus || "")
+                .trim()
+                .toUpperCase();
+            if (suppliedSensorStatus && suppliedSensorStatus !== "LIVE") {
+                return res.status(400).json({
+                    error: "A baseline sample was explicitly marked as a non-LIVE sensor reading"
+                });
+            }
+            const receivedAt = reading?.receivedAt ? new Date(reading.receivedAt) : null;
+            const validation = validateReading(reading);
+            if (!validation.valid || !receivedAt || Number.isNaN(receivedAt.getTime())) {
+                return res.status(400).json({
+                    error: `All baseline samples must contain valid timestamped heart-rate, SpO2, and temperature readings${validation.reason ? `: ${validation.reason}` : ""}`
+                });
+            }
+            const timestamp = receivedAt.toISOString();
+            if (seenTimestamps.has(timestamp)) {
+                return res.status(400).json({ error: "Duplicate sensor readings cannot be used for a baseline" });
+            }
+            seenTimestamps.add(timestamp);
+            normalizedReadings.push({
+                ...validation.vitals,
+                receivedAt
+            });
+        }
+
+        const calculatedBaseline = calculateBaseline(normalizedReadings, "mean");
+        if (!calculatedBaseline) {
+            return res.status(400).json({ error: "Unable to calculate a complete patient baseline from the supplied readings" });
+        }
+
+        const establishedAt = new Date();
+        patient.baseline = {
+            ...(patient.baseline?.toObject?.() || patient.baseline || {}),
+            ...calculatedBaseline,
+            sampleCount: normalizedReadings.length,
+            calibrationSamples: normalizedReadings,
+            establishedAt,
+            baselineMethod: "mean",
+            calibrationStatus: "ESTABLISHED",
+            established: true
+        };
+
+        const currentReading = validateReading(patient);
+        patient.baselineDeviation = getSensorStatus(patient) === "LIVE" && currentReading.valid
+            ? calculateDeviation(currentReading.vitals, patient.baseline)
+            : { heartRate: null, spo2: null, temperature: null };
+
+        await patient.save();
+        return res.json({
+            message: "Complete patient baseline saved successfully",
+            patientId: patient.patientId,
+            baseline: patient.baseline,
+            baselineDeviation: patient.baselineDeviation,
+            baselineStatus: patient.baseline.calibrationStatus
+        });
+    } catch (error) {
+        console.error("Failed to save patient session baseline:", error);
+        return res.status(500).json({ error: "Failed to save patient session baseline" });
+    }
+});
+
+// RESET PATIENT BASELINE
 router.post("/:id/baseline/reset", async (req, res) => {
     try {
         const patient = await Patient.findOne({
@@ -129,13 +266,16 @@ router.post("/:id/baseline/reset", async (req, res) => {
             });
         }
 
-        resetBaseline(patient.patientId);
-
         patient.baseline = {
             heartRate: null,
             spo2: null,
             temperature: null,
             sampleCount: 0,
+            calibrationStatus: "BASELINE_CALIBRATING",
+            calibrationSamples: [],
+            establishedAt: null,
+            baselineMethod: "median",
+            skippedAbnormalSamples: 0,
             established: false
         };
 
@@ -143,8 +283,8 @@ router.post("/:id/baseline/reset", async (req, res) => {
         patient.spo2 = null;
         patient.temperature = null;
 
-        patient.risk = "LOW";
-        patient.riskScore = 0;
+        patient.risk = null;
+        patient.riskScore = null;
         patient.riskReasons = [];
         patient.riskSummary = "";
 
@@ -159,6 +299,14 @@ router.post("/:id/baseline/reset", async (req, res) => {
             spo2: null,
             temperature: null
         };
+        patient.sensorStatus = "SENSOR_DISCONNECTED";
+        patient.lastSensorMessageAt = null;
+        patient.lastValidReadingAt = null;
+        patient.lastSensorError = "";
+        patient.aiRisk = null;
+        patient.aiConfidence = null;
+        patient.aiInferenceAt = null;
+        patient.lastRiskAssessmentAt = null;
 
         await patient.save();
 
@@ -191,71 +339,50 @@ router.get("/:patientId/digital-twin", async (req, res) => {
             });
         }
 
+        const room = await Room.findOne({ roomId: patient.room });
+        const liveRoom = room ? presentRoom(room) : null;
+
         const history = await Vital.find({
-            patientId: patient.patientId
+            patientId: patient.patientId,
+            source: "MQTT"
         })
             .sort({ createdAt: -1 })
             .limit(100)
             .lean();
 
-        const latestVital = history[0] || null;
-
+        const currentValidation = validateReading(patient);
+        const sensorStatus = getSensorStatus(patient);
+        const hasLiveVitals = sensorStatus === "LIVE" && currentValidation.valid;
         const currentState = {
-            heartRate: normalizeNumber(
-                latestVital?.heartRate ?? patient.heartRate,
-                patient.heartRate ?? 0
-            ),
-
-            spo2: normalizeNumber(
-                latestVital?.spo2 ?? patient.spo2,
-                patient.spo2 ?? 100
-            ),
-
-            temperature: normalizeNumber(
-                latestVital?.temperature ?? patient.temperature,
-                patient.temperature ?? 36.8
-            ),
-
-            roomTemperature: normalizeNumber(
-                patient.roomContext?.temperature ?? 24,
-                24
-            ),
-
-            humidity: normalizeNumber(
-                patient.roomContext?.humidity ?? 50,
-                50
-            ),
-
-            airQuality: normalizeNumber(
-                patient.roomContext?.airQuality ?? 100,
-                100
-            )
+            heartRate: hasLiveVitals ? currentValidation.vitals.heartRate : null,
+            spo2: hasLiveVitals ? currentValidation.vitals.spo2 : null,
+            temperature: hasLiveVitals ? currentValidation.vitals.temperature : null,
+            roomTemperature: liveRoom?.temperature ?? null,
+            humidity: liveRoom?.humidity ?? null,
+            airQuality: liveRoom?.airQuality ?? null
         };
 
-        const baselineInfo = computeBaselineFromHistory(history);
-        const baseline = baselineInfo.baseline;
+        const baselineStatus = effectiveBaselineStatus(patient);
+        const handDetected = patient.fingerDetected === true;
+        const riskAvailable = handDetected && baselineStatus === "ESTABLISHED" && hasLiveVitals;
+        const baseline = baselineStatus === "ESTABLISHED"
+            ? {
+                heartRate: patient.baseline.heartRate,
+                spo2: patient.baseline.spo2,
+                temperature: patient.baseline.temperature
+            }
+            : { heartRate: null, spo2: null, temperature: null };
+        const deviations = baselineStatus === "ESTABLISHED" && hasLiveVitals
+            ? calculateDeviation(currentValidation.vitals, { ...baseline, established: true })
+            : { heartRate: null, spo2: null, temperature: null };
 
-        const deviations = buildDeviationValues(
-            currentState,
-            baseline
-        );
-
-        // Only use complete, physiologically valid vital records
-        // for Digital Twin trend calculations.
-        //
-        // This prevents old test records such as
-        // HR = 0, SpO2 = 0, Temp = 27.6
-        // from creating misleading trends.
         const validTrendHistory = history.filter(
             (entry) =>
                 entry &&
-                Number.isFinite(Number(entry.heartRate)) &&
-                Number(entry.heartRate) > 0 &&
-                Number.isFinite(Number(entry.spo2)) &&
-                Number(entry.spo2) > 0 &&
-                Number.isFinite(Number(entry.temperature)) &&
-                Number(entry.temperature) > 0
-        );
+                Number.isFinite(Number(entry.heartRate)) && Number(entry.heartRate) >= 30 && Number(entry.heartRate) <= 220 &&
+                Number.isFinite(Number(entry.spo2)) && Number(entry.spo2) >= 70 && Number(entry.spo2) <= 100 &&
+                Number.isFinite(Number(entry.temperature)) && Number(entry.temperature) >= 25 && Number(entry.temperature) <= 45
+        ).reverse();
 
         const trends = {
             heartRate: calculateTrend(
@@ -275,10 +402,19 @@ router.get("/:patientId/digital-twin", async (req, res) => {
         };
 
         const dataQuality = {
-            status: baselineInfo.status,
-            message: baselineInfo.message,
-            sampleCount: baselineInfo.sampleCount,
-            requiredSamples: baselineInfo.requiredSamples
+            status: baselineStatus,
+            sensorStatus,
+            message: baselineStatus === "ESTABLISHED"
+                ? patient.baseline.baselineMethod === "mean"
+                    ? `Personal baseline was calculated as the arithmetic mean of ${patient.baseline.sampleCount} valid MQTT readings.`
+                    : "Baseline was calibrated from valid MQTT sensor readings and is frozen until explicitly reset."
+                : `BASELINE_CALIBRATING: ${patient.baseline.sampleCount}/${BASELINE_SAMPLE_COUNT} valid normal-range MQTT readings collected.`,
+            sampleCount: patient.baseline.sampleCount,
+            requiredSamples: BASELINE_SAMPLE_COUNT,
+            baselineMethod: patient.baseline.baselineMethod || "median",
+            lastValidReadingAt: patient.lastValidReadingAt,
+            lastSensorMessageAt: patient.lastSensorMessageAt,
+            lastSensorError: patient.lastSensorError
         };
 
         res.json({
@@ -286,11 +422,22 @@ router.get("/:patientId/digital-twin", async (req, res) => {
                 patientId: patient.patientId,
                 name: patient.name,
                 room: patient.room,
-                risk: patient.risk,
-                riskScore: patient.riskScore,
-                source: patient.riskSummary
-                    ? "Live monitoring"
-                    : "No live risk summary"
+                risk: riskAvailable ? patient.risk : null,
+                riskScore: riskAvailable ? patient.riskScore : null,
+                aiRisk: riskAvailable ? patient.aiRisk : null,
+                aiConfidence: riskAvailable ? patient.aiConfidence : null,
+                aiInferenceAt: riskAvailable ? patient.aiInferenceAt : null,
+                riskSummary: !handDetected
+                    ? "Hand not detected. Place a finger on the pulse-oximeter sensor to show the risk."
+                    : baselineStatus !== "ESTABLISHED"
+                        ? "Calculate the 15-reading patient baseline to show the risk."
+                        : hasLiveVitals
+                    ? patient.riskSummary
+                    : sensorStatus === "SENSOR_INVALID"
+                        ? `SENSOR_INVALID: ${patient.lastSensorError || "latest sensor packet failed validation"}; risk assessment withheld.`
+                        : `${sensorStatus}: risk assessment withheld until valid live readings resume.`,
+                riskReasons: riskAvailable ? patient.riskReasons : [],
+                source: riskAvailable ? "MQTT" : sensorStatus
             },
 
             currentState,
@@ -301,7 +448,7 @@ router.get("/:patientId/digital-twin", async (req, res) => {
 
             simulationOnly: false,
 
-            note: "This patient-specific digital twin is derived from the patient’s real historical vitals and current state only."
+            note: "Live state and baseline use valid MQTT readings only. This is a university prototype, not a medically validated diagnostic system."
         });
 
     } catch (error) {
@@ -324,6 +471,12 @@ router.post("/:patientId/what-if", async (req, res) => {
         if (!patient) {
             return res.status(404).json({
                 error: "Patient not found"
+            });
+        }
+
+        if (effectiveBaselineStatus(patient) !== "ESTABLISHED") {
+            return res.status(409).json({
+                error: "Calculate the 15-reading patient baseline before running a risk simulation."
             });
         }
 
@@ -374,19 +527,28 @@ router.post("/:patientId/what-if", async (req, res) => {
             )
         };
 
-        const baselineInfo = computeBaselineFromHistory(history);
+        const savedBaselineEstablished = effectiveBaselineStatus(patient) === "ESTABLISHED";
+        const historyBaselineInfo = savedBaselineEstablished
+            ? null
+            : computeBaselineFromHistory(history);
+        const baselineInfo = savedBaselineEstablished
+            ? {
+                status: "SUFFICIENT",
+                message: `Using the saved personal baseline calculated from ${patient.baseline.sampleCount} live MQTT readings.`,
+                sampleCount: patient.baseline.sampleCount,
+                requiredSamples: BASELINE_SAMPLE_COUNT,
+                baseline: {
+                    heartRate: patient.baseline.heartRate,
+                    spo2: patient.baseline.spo2,
+                    temperature: patient.baseline.temperature
+                }
+            }
+            : historyBaselineInfo;
         const baseline = baselineInfo.baseline;
 
-        const currentRiskPayload = buildAiFeatureVector(
+        const currentRisk = calculateBaselineSimulationRisk(
             currentState,
-            roomContext,
             baseline
-        );
-
-        const currentRisk = await predictWithAI(
-            currentRiskPayload,
-            roomContext,
-            buildDeviationValues(currentState, baseline)
         );
 
         const request = req.body || {};
@@ -476,39 +638,9 @@ router.post("/:patientId/what-if", async (req, res) => {
                 simulatedBaseline
             );
 
-        const simulatedRiskPayload =
-            buildAiFeatureVector(
-                simulatedState,
-                {
-                    ...roomContext,
-                    temperature:
-                        simulatedState.roomTemperature ??
-                        roomContext.temperature,
-                    humidity:
-                        simulatedState.humidity ??
-                        roomContext.humidity,
-                    airQuality:
-                        simulatedState.airQuality ??
-                        roomContext.airQuality
-                },
-                simulatedBaseline
-            );
-
-        const simulatedRisk = await predictWithAI(
-            simulatedRiskPayload,
-            {
-                ...roomContext,
-                temperature:
-                    simulatedState.roomTemperature ??
-                    roomContext.temperature,
-                humidity:
-                    simulatedState.humidity ??
-                    roomContext.humidity,
-                airQuality:
-                    simulatedState.airQuality ??
-                    roomContext.airQuality
-            },
-            simulatedDeviations
+        const simulatedRisk = calculateBaselineSimulationRisk(
+            simulatedState,
+            simulatedBaseline
         );
 
         const comparison = {
@@ -632,33 +764,7 @@ router.get("/", async (req, res) => {
     try {
         const patients = await Patient.find();
 
-        const patientsWithStatus = patients.map(
-            (patient) => {
-                const patientData = patient.toObject();
-
-                if (!patientData.baseline?.established) {
-                    return {
-                        ...patientData,
-
-                        risk: "LOW",
-                        riskScore: 0,
-                        riskReasons: [],
-
-                        riskSummary:
-                            "Baseline is currently being established.",
-
-                        recommendedAction: {
-                            fan: false,
-                            buzzer: false,
-                            reason:
-                                "Baseline collection in progress."
-                        }
-                    };
-                }
-
-                return patientData;
-            }
-        );
+        const patientsWithStatus = patients.map(presentPatient);
 
         res.json(patientsWithStatus);
 
@@ -688,29 +794,9 @@ router.get("/:id", async (req, res) => {
             });
         }
 
-        const patientData = patient.toObject();
+        const room = await Room.findOne({ roomId: patient.room });
 
-        if (!patientData.baseline?.established) {
-            return res.json({
-                ...patientData,
-
-                risk: "LOW",
-                riskScore: 0,
-                riskReasons: [],
-
-                riskSummary:
-                    "Baseline is currently being established.",
-
-                recommendedAction: {
-                    fan: false,
-                    buzzer: false,
-                    reason:
-                        "Baseline collection in progress."
-                }
-            });
-        }
-
-        res.json(patientData);
+        res.json(presentPatient(patient, room));
 
     } catch (error) {
         console.error(

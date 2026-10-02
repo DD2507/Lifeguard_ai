@@ -11,6 +11,7 @@ export default function AppShell({
   onNavigate,
   onLogout,
   alertCount,
+  dueReminderCount = 0,
   connected,
   pageTheme,
   children
@@ -49,6 +50,12 @@ export default function AppShell({
             </span>
             <span>{connected ? "System Connected" : "Reconnecting"}</span>
           </div>
+          {dueReminderCount > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-400 text-amber-950 text-xs font-bold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-amber-600" />
+              <span>{`${dueReminderCount} Due`}</span>
+            </div>
+          )}
           <nav className="flex items-center text-sm font-medium gap-1 text-slate-600">
             {NAV.map((item) => {
               const active = activePage === item.id;

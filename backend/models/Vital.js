@@ -1,15 +1,6 @@
 const mongoose = require("mongoose");
 
 
-const { calculateRisk } = require("../services/riskEngine");
-
-const {
-    BASELINE_SAMPLE_COUNT,
-    addSample,
-    calculateBaseline,
-    calculateDeviation
-} = require("../services/baselineService");
-
 const vitalSchema = new mongoose.Schema(
     {
         patientId: {
@@ -38,6 +29,11 @@ const vitalSchema = new mongoose.Schema(
             required: true
         },
 
+        receivedAt: {
+            type: Date,
+            required: true
+        },
+
         // Deviation from patient's personal baseline
         baselineDeviation: {
             heartRate: {
@@ -60,12 +56,12 @@ const vitalSchema = new mongoose.Schema(
         risk: {
             type: String,
             enum: ["LOW", "MODERATE", "HIGH"],
-            default: "LOW"
+            default: null
         },
 
         riskScore: {
             type: Number,
-            default: 0
+            default: null
         },
 
         // Explanation of the risk at this point in time
@@ -111,7 +107,12 @@ const vitalSchema = new mongoose.Schema(
                 type: String,
                 default: ""
             }
-        }
+        },
+        source: {
+            type: String,
+            enum: ["MQTT"],
+            default: "MQTT"
+        },
     },
     {
         timestamps: true

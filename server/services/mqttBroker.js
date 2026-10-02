@@ -13,7 +13,9 @@ const { fallbackPatients } = require("../routes/patients");
 const { fallbackRooms } = require("../routes/rooms");
 
 const MQTT_URL =
-    process.env.MQTT_URL || "mqtt://127.0.0.1:1883";
+    process.env.MQTT_URL ||
+    process.env.MQTT_BROKER_URL ||
+    "mqtt://10.222.14.64:1883";
 
 let mqttClient = null;
 

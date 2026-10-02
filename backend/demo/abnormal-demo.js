@@ -2,7 +2,8 @@ const mqtt = require("mqtt");
 
 const client = mqtt.connect(
     process.env.MQTT_BROKER_URL ||
-    "mqtt://localhost:1883"
+    process.env.MQTT_URL ||
+    "mqtt://10.222.14.64:1883"
 );
 
 const patientId = "P001";

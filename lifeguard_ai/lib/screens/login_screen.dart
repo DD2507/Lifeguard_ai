@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,11 +11,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController usernameController =
-      TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
 
-  final TextEditingController passwordController =
-      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool obscurePassword = true;
   String errorMessage = '';
@@ -26,9 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (username == 'admin' && password == 'admin123') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
       setState(() {
@@ -47,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001A21),
+      backgroundColor: LifeGuardColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -55,21 +52,18 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 // Logo / Icon
                 Container(
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF12353B),
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: const Color(0xFF14606A),
-                    ),
+                    color: LifeGuardColors.lime,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: LifeGuardColors.ink),
                   ),
                   child: const Icon(
                     Icons.favorite,
-                    color: Color(0xFF20C8C8),
+                    color: LifeGuardColors.ink,
                     size: 48,
                   ),
                 ),
@@ -79,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Text(
                   'LifeGuard AI',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: LifeGuardColors.ink,
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                   ),
@@ -89,10 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   'Patient Care Intelligence',
-                  style: TextStyle(
-                    color: Color(0xFF8497A3),
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: LifeGuardColors.muted, fontSize: 14),
                 ),
 
                 const SizedBox(height: 40),
@@ -101,20 +92,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141E2D),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF263747),
-                    ),
+                    color: LifeGuardColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: LifeGuardColors.border),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         'Welcome Back',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: LifeGuardColors.ink,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -125,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         'Sign in to access the patient monitoring dashboard.',
                         style: TextStyle(
-                          color: Color(0xFF8294A1),
+                          color: LifeGuardColors.muted,
                           fontSize: 12,
                         ),
                       ),
@@ -135,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         'Username',
                         style: TextStyle(
-                          color: Color(0xFFB8C5CA),
+                          color: LifeGuardColors.ink,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -145,23 +133,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       TextField(
                         controller: usernameController,
-                        style: const TextStyle(
-                          color: Colors.white,
-                        ),
+                        style: const TextStyle(color: LifeGuardColors.ink),
                         decoration: InputDecoration(
                           hintText: 'Enter username',
                           hintStyle: const TextStyle(
-                            color: Color(0xFF718692),
+                            color: LifeGuardColors.muted,
                           ),
                           prefixIcon: const Icon(
                             Icons.person_outline,
-                            color: Color(0xFF20C8C8),
+                            color: LifeGuardColors.emerald,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFF101A27),
+                          fillColor: LifeGuardColors.surfaceMuted,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: LifeGuardColors.border,
+                            ),
                           ),
                         ),
                       ),
@@ -171,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         'Password',
                         style: TextStyle(
-                          color: Color(0xFFB8C5CA),
+                          color: LifeGuardColors.ink,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -182,18 +170,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: passwordController,
                         obscureText: obscurePassword,
-                        style: const TextStyle(
-                          color: Colors.white,
-                        ),
+                        style: const TextStyle(color: LifeGuardColors.ink),
                         onSubmitted: (_) => login(),
                         decoration: InputDecoration(
                           hintText: 'Enter password',
                           hintStyle: const TextStyle(
-                            color: Color(0xFF718692),
+                            color: LifeGuardColors.muted,
                           ),
                           prefixIcon: const Icon(
                             Icons.lock_outline,
-                            color: Color(0xFF20C8C8),
+                            color: LifeGuardColors.emerald,
                           ),
                           suffixIcon: IconButton(
                             onPressed: () {
@@ -205,14 +191,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               obscurePassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: const Color(0xFF718692),
+                              color: LifeGuardColors.muted,
                             ),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFF101A27),
+                          fillColor: LifeGuardColors.surfaceMuted,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: LifeGuardColors.border,
+                            ),
                           ),
                         ),
                       ),
@@ -222,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           errorMessage,
                           style: const TextStyle(
-                            color: Color(0xFFFF6575),
+                            color: LifeGuardColors.rose,
                             fontSize: 12,
                           ),
                         ),
@@ -236,13 +224,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: ElevatedButton(
                           onPressed: login,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color(0xFF20C8C8),
-                            foregroundColor:
-                                const Color(0xFF001A21),
+                            backgroundColor: LifeGuardColors.lime,
+                            foregroundColor: LifeGuardColors.ink,
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: const Text(
@@ -262,10 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   'LifeGuard AI • Secure Patient Monitoring',
-                  style: TextStyle(
-                    color: Color(0xFF526570),
-                    fontSize: 10,
-                  ),
+                  style: TextStyle(color: LifeGuardColors.muted, fontSize: 10),
                 ),
               ],
             ),

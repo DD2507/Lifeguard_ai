@@ -1,8 +1,8 @@
 export function greeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning, Doctor";
-  if (hour < 17) return "Good afternoon, Doctor";
-  return "Good evening, Doctor";
+  if (hour < 12) return "Good morning, doctor";
+  if (hour < 17) return "Good afternoon, doctor";
+  return "Good evening, doctor";
 }
 
 export function patientIndex(patientId = "") {
@@ -18,7 +18,7 @@ export function formatVital(value, suffix = "") {
   return `${value}${suffix}`;
 }
 
-export function riskTone(risk) {
+export function riskTone(risk, baselineStatus, sensorStatus) {
   const value = String(risk || "LOW").toUpperCase();
   if (value === "HIGH") {
     return {
@@ -40,6 +40,24 @@ export function riskTone(risk) {
       card: "border-amber-200",
       text: "text-amber-600",
       soft: "bg-amber-50"
+    };
+  }
+  if (!risk || sensorStatus === "DATA_STALE" || sensorStatus === "SENSOR_INVALID") {
+    const label = sensorStatus === "DATA_STALE"
+      ? "Data Stale"
+      : sensorStatus === "SENSOR_INVALID"
+        ? "Sensor Invalid"
+        : baselineStatus === "ESTABLISHED"
+          ? "No Current Risk"
+          : "Baseline Calibrating";
+    return {
+      key: "unknown",
+      label,
+      pill: "bg-slate-100 text-slate-700 border-slate-200",
+      solid: "bg-slate-600 text-white",
+      card: "border-slate-200",
+      text: "text-slate-600",
+      soft: "bg-slate-50"
     };
   }
   return {

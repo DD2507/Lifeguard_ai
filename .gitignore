@@ -38,6 +38,17 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Temporary backups and UI captures
+*.bak
+window.xml
+
+# Generated report outputs
+/LifeGuard_AI_Application_Report*.docx
+/LifeGuard_AI_Application_Report*.pdf
+/report_assets/
+/report_render_*/
+/report_runtime_logs/
+
 # Large installers
 *.exe
 # Flutter SDK

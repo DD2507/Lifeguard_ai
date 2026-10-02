@@ -1,7 +1,8 @@
 const mqtt = require("mqtt");
 
-const MQTT_URL = "mqtt://10.52.146.64:1883";
+const MQTT_URL = "mqtt://10.222.14.64:1883";
 const TOPIC = "lifeguard/patient/P003/vitals";
+const CONTROL_TOPIC = "lifeguard/demo/P003/control";
 
 const client = mqtt.connect(MQTT_URL);
 
@@ -10,6 +11,8 @@ const client = mqtt.connect(MQTT_URL);
 // ===============================
 const highRiskMessage = {
     patient_id: "P003",
+    demoSource: "server/demo_high_risk",
+    demoMode: "ACTIVE",
     heartRate: 135,
     spo2: 98,
     temperature: 36.5,
@@ -23,6 +26,8 @@ const highRiskMessage = {
 // ===============================
 const normalMessage = {
     patient_id: "P003",
+    demoSource: "server/demo_high_risk",
+    demoMode: "STOP",
     heartRate: 75,
     spo2: 98,
     temperature: 36.7,
@@ -32,6 +37,7 @@ const normalMessage = {
 };
 
 let interval;
+let stopping = false;
 
 // ===============================
 // CONNECT
@@ -44,11 +50,31 @@ client.on("connect", () => {
     console.log("MQTT: Connected");
     console.log("=================================");
 
-    // Send first high-risk reading
-    publishHighRisk();
+    client.subscribe(CONTROL_TOPIC, { qos: 1 }, (error) => {
+        if (error) {
+            console.error("Failed to subscribe to demo control:", error.message);
+            return;
+        }
+        console.log("Acknowledge-control: Ready");
 
-    // Continue every 3 seconds
-    interval = setInterval(publishHighRisk, 3000);
+        // Send first high-risk reading
+        publishHighRisk();
+
+        // Continue every 3 seconds
+        interval = setInterval(publishHighRisk, 3000);
+    });
+});
+
+client.on("message", (topic, payload) => {
+    if (topic !== CONTROL_TOPIC) return;
+    try {
+        const command = JSON.parse(payload.toString());
+        if (command.action === "STOP_HIGH_RISK_DEMO") {
+            stopDemo("Alert acknowledged from the dashboard");
+        }
+    } catch (error) {
+        console.error("Invalid demo-control message:", error.message);
+    }
 });
 
 // ===============================
@@ -81,11 +107,14 @@ function publishHighRisk() {
 // CTRL + C
 // RESTORE NORMAL CONDITION
 // ===============================
-process.on("SIGINT", () => {
+function stopDemo(reason) {
+    if (stopping) return;
+    stopping = true;
 
     console.log();
     console.log("=================================");
     console.log("Stopping HIGH RISK DEMO...");
+    console.log(`Reason: ${reason}`);
     console.log("Restoring normal patient data...");
     console.log("=================================");
 
@@ -124,7 +153,9 @@ process.on("SIGINT", () => {
             }, 500);
         }
     );
-});
+}
+
+process.on("SIGINT", () => stopDemo("Ctrl+C"));
 
 // ===============================
 // MQTT ERROR

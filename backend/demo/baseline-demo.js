@@ -2,10 +2,18 @@ const mqtt = require("mqtt");
 
 const client = mqtt.connect(
     process.env.MQTT_BROKER_URL ||
-    "mqtt://localhost:1883"
+    process.env.MQTT_URL ||
+    "mqtt://10.222.14.64:1883"
 );
 
-const patientId = "P001";
+const patientId = process.argv[2] || process.env.BASELINE_DEMO_PATIENT_ID;
+
+if (!patientId) {
+    console.error(
+        "Usage: node backend/demo/baseline-demo.js <existing-patient-id>"
+    );
+    process.exit(1);
+}
 
 const topic =
     `lifeguard/patient/${patientId}/vitals`;
@@ -24,9 +32,26 @@ const normalReadings = [
 ];
 
 client.on("connect", () => {
-    console.log(
-        `Starting baseline simulation for ${patientId}`
-    );
+    void verifyPatientAndPublish();
+});
+
+async function verifyPatientAndPublish() {
+    const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:5000/api";
+    try {
+        const response = await fetch(
+            `${apiBaseUrl}/patients/${encodeURIComponent(patientId)}`
+        );
+        if (!response.ok) {
+            throw new Error(
+                `Patient ${patientId} is not registered (API returned ${response.status}); refusing to publish baseline readings`
+            );
+        }
+        console.log(`Starting baseline simulation for existing patient ${patientId}`);
+    } catch (error) {
+        console.error("Baseline demo stopped:", error.message);
+        client.end();
+        return;
+    }
 
     let index = 0;
 
@@ -69,7 +94,7 @@ client.on("connect", () => {
             }, 1000);
         }
     }, 1000);
-});
+}
 
 client.on("error", (error) => {
     console.error(

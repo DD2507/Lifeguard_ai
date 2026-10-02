@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AlertCard from "../components/AlertCard";
 import PatientCard from "../components/PatientCard";
 import { greeting } from "../utils";
@@ -8,12 +9,22 @@ export default function DashboardPage({
   beds,
   onOpenPatient,
   onResolveAlert,
+  onCompleteMedicine,
   onNavigate
 }) {
+  const [dashboardGreeting, setDashboardGreeting] = useState(() => greeting());
   const high = patients.filter((p) => p.risk === "HIGH").length;
   const low = patients.filter((p) => p.risk === "LOW").length;
   const availableBeds = beds.filter((bed) => bed.status === "AVAILABLE").slice(0, 2);
   const firstBed = beds.find((bed) => bed.status === "OCCUPIED");
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setDashboardGreeting(greeting());
+    }, 60_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <>
@@ -23,7 +34,7 @@ export default function DashboardPage({
             <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
             Shift Overview • Intensive Care Unit
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display text-slate-900 pt-1">{greeting()}</h1>
+          <h1 className="text-3xl sm:text-4xl font-display text-slate-900 pt-1">{dashboardGreeting}</h1>
           <p className="text-sm text-slate-500 font-medium">Here is the latest overview of your patients.</p>
         </div>
         <div className="hidden sm:flex w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 items-center justify-center text-rose-500">
@@ -89,6 +100,7 @@ export default function DashboardPage({
               alert={alert}
               onOpen={onOpenPatient}
               onResolve={onResolveAlert}
+              onCompleteMedicine={onCompleteMedicine}
             />
           ))
         )}

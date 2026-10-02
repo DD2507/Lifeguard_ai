@@ -1,6 +1,9 @@
 const mqtt = require("mqtt");
 
-const MQTT_URL = "mqtt://127.0.0.1:1883";
+const MQTT_URL =
+    process.env.MQTT_URL ||
+    process.env.MQTT_BROKER_URL ||
+    "mqtt://10.222.14.64:1883";
 const TOPIC = "lifeguard/patient/P003/vitals";
 
 const client = mqtt.connect(MQTT_URL, {
